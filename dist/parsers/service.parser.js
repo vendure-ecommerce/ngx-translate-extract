@@ -6,6 +6,7 @@ import * as fs from 'fs';
 const TRANSLATE_SERVICE_TYPE_REFERENCE = 'TranslateService';
 const TRANSLATE_SERVICE_METHOD_NAMES = ['get', 'instant', 'stream'];
 export class ServiceParser {
+    static propertyMap = new Map();
     extract(source, filePath) {
         const sourceFile = tsquery.ast(source, filePath);
         const classDeclarations = findClassDeclarations(sourceFile);
@@ -57,6 +58,9 @@ export class ServiceParser {
         if (!importPath) {
             return [];
         }
+        else if (!importPath.startsWith('.') && !importPath.startsWith('/')) {
+            return [];
+        }
         const currDir = path.dirname(ast.fileName);
         const superClassPath = path.resolve(currDir, importPath + '.ts');
         if (superClassPath in ServiceParser.propertyMap) {
@@ -78,5 +82,4 @@ export class ServiceParser {
         }
     }
 }
-ServiceParser.propertyMap = new Map();
 //# sourceMappingURL=service.parser.js.map

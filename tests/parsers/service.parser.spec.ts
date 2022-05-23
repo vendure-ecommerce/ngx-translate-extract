@@ -306,6 +306,58 @@ describe('ServiceParser', () => {
 		expect(keys).to.deep.equal(['Back']);
 	});
 
+	it('should not break when trying to follow a non-relative import', () => {
+		const contents = `
+			import { BaseClass } from '@angular/core';
+
+			@Component({ })
+			export class MyComponent extends BaseClass {
+				public constructor() {
+					this.translate.instant('nope');
+				}
+			}
+		`;
+		const keys = parser.extract(contents, componentFilename).keys();
+		expect(keys).to.deep.equal([]);
+	});
+
+	it('should not follow interface definitions', () => {
+		const contents = `
+			import { OnInit } from '@angular/core';
+
+			@Component({ })
+			export class MyComponent implements OnInit {
+				public constructor() {
+					this.translate.instant('nope');
+				}
+			}
+		`;
+		const keys = parser.extract(contents, componentFilename).keys();
+		expect(keys).to.deep.equal([]);
+	});
+
+	it('should not break on multi-line imports', () => {
+		const contents = `
+			import {
+				ChangeDetectionStrategy,
+				ChangeDetectorRef,
+				Component,
+				OnDestroy,
+				OnInit,
+				ViewEncapsulation
+			} from '@angular/core';
+
+			@Component({ })
+			export class MyComponent implements OnInit, OnDestroy {
+				public constructor() {
+					this.translate.instant('nope');
+				}
+			}
+		`;
+		const keys = parser.extract(contents, componentFilename).keys();
+		expect(keys).to.deep.equal([]);
+	});
+
 	it('should not extract chained function calls', () => {
 		const contents = `
 			@Component({ })

@@ -2,10 +2,9 @@ import { TranslationCollection } from '../utils/translation.collection.js';
 import pkg from 'gettext-parser';
 const { po } = pkg;
 export class PoCompiler {
-    constructor(options) {
-        this.extension = 'po';
-        this.domain = '';
-    }
+    extension = 'po';
+    domain = '';
+    constructor(options) { }
     compile(collection) {
         const data = {
             charset: 'utf-8',

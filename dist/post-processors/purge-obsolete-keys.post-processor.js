@@ -1,7 +1,5 @@
 export class PurgeObsoleteKeysPostProcessor {
-    constructor() {
-        this.name = 'PurgeObsoleteKeys';
-    }
+    name = 'PurgeObsoleteKeys';
     process(draft, extracted, existing) {
         return draft.intersect(extracted);
     }

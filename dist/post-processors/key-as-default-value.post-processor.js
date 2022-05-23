@@ -1,7 +1,5 @@
 export class KeyAsDefaultValuePostProcessor {
-    constructor() {
-        this.name = 'KeyAsDefaultValue';
-    }
+    name = 'KeyAsDefaultValue';
     process(draft, extracted, existing) {
         return draft.map((key, val) => (val === '' ? key : val));
     }

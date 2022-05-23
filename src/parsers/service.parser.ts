@@ -82,6 +82,9 @@ export class ServiceParser implements ParserInterface {
 			// parent class must be in the same file and will be handled automatically, so we can
 			// skip it here
 			return [];
+		} else if (!importPath.startsWith('.') && !importPath.startsWith('/')) {
+			// no relative import, so we do not have to look for properties
+			return [];
 		}
 		const currDir = path.dirname(ast.fileName);
 		const superClassPath = path.resolve(currDir, importPath + '.ts');

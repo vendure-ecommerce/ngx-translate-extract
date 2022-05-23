@@ -5,14 +5,17 @@ const { sync } = pkg;
 import * as fs from 'fs';
 import * as path from 'path';
 export class ExtractTask {
+    inputs;
+    outputs;
+    options = {
+        replace: false
+    };
+    parsers = [];
+    postProcessors = [];
+    compiler;
     constructor(inputs, outputs, options) {
         this.inputs = inputs;
         this.outputs = outputs;
-        this.options = {
-            replace: false
-        };
-        this.parsers = [];
-        this.postProcessors = [];
         this.inputs = inputs.map((input) => path.resolve(input));
         this.outputs = outputs.map((output) => path.resolve(output));
         this.options = { ...this.options, ...options };

@@ -1,7 +1,5 @@
 export class SortByKeyPostProcessor {
-    constructor() {
-        this.name = 'SortByKey';
-    }
+    name = 'SortByKey';
     process(draft, extracted, existing) {
         return draft.sort();
     }

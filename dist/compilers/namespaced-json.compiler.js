@@ -3,9 +3,9 @@ import { stripBOM } from '../utils/utils.js';
 import pkg from 'flat';
 const { flatten, unflatten } = pkg;
 export class NamespacedJsonCompiler {
+    indentation = '\t';
+    extension = 'json';
     constructor(options) {
-        this.indentation = '\t';
-        this.extension = 'json';
         if (options && typeof options.indentation !== 'undefined') {
             this.indentation = options.indentation;
         }

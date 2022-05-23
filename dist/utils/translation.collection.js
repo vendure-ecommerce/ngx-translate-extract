@@ -1,6 +1,6 @@
 export class TranslationCollection {
+    values = {};
     constructor(values = {}) {
-        this.values = {};
         this.values = values;
     }
     add(key, val = '') {
