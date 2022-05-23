@@ -58,9 +58,6 @@ export class ServiceParser {
         if (!importPath) {
             return [];
         }
-        else if (!importPath.startsWith('.') && !importPath.startsWith('/')) {
-            return [];
-        }
         const currDir = path.dirname(ast.fileName);
         const superClassPath = path.resolve(currDir, importPath);
         if (superClassPath in ServiceParser.propertyMap) {
@@ -73,6 +70,9 @@ export class ServiceParser {
         }
         else if (fs.existsSync(superClassPath) && fs.lstatSync(superClassPath).isDirectory()) {
             potentialSuperFiles = fs.readdirSync(superClassPath).filter(file => file.endsWith('.ts')).map(file => path.join(superClassPath, file));
+        }
+        else {
+            return [];
         }
         const superClassPropertyNames = [];
         potentialSuperFiles.forEach(file => {
