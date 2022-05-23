@@ -86,25 +86,37 @@ export class ServiceParser implements ParserInterface {
 			// no relative import, so we do not have to look for properties
 			return [];
 		}
+
 		const currDir = path.dirname(ast.fileName);
-		const superClassPath = path.resolve(currDir, importPath + '.ts');
-		if (superClassPath in ServiceParser.propertyMap) {
-			return ServiceParser.propertyMap.get(superClassPath);
+        const superClassPath = path.resolve(currDir, importPath);
+        if (superClassPath in ServiceParser.propertyMap) {
+            return ServiceParser.propertyMap.get(superClassPath);
+        }
+        const superClassFile = superClassPath + '.ts';
+        let potentialSuperFiles: string[];
+        if (fs.existsSync(superClassFile) && fs.lstatSync(superClassFile).isFile()) {
+			potentialSuperFiles = [superClassFile];
+		} else if (fs.existsSync(superClassPath) && fs.lstatSync(superClassPath).isDirectory()) {
+			potentialSuperFiles = fs.readdirSync(superClassPath).filter(file => file.endsWith('.ts')).map(file => path.join(superClassPath, file));
 		}
-		const superClassFile = fs.readFileSync(superClassPath, 'utf8');
-		const superClassAst = tsquery.ast(superClassFile, superClassPath);
-		const superClassDeclarations = findClassDeclarations(superClassAst, superClassName);
-		const superClassPropertyNames = superClassDeclarations
-			.map(superClassDeclaration => findClassPropertyByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE))
-			.filter(n => !!n);
-		if (superClassPropertyNames.length > 0) {
-			ServiceParser.propertyMap.set(superClassPath, superClassPropertyNames);
-			return superClassPropertyNames;
-		} else {
-			superClassDeclarations.forEach(declaration =>
-				superClassPropertyNames.push(...this.findParentClassProperties(declaration, superClassAst))
-			);
-			return superClassPropertyNames.flat();
-		}
+
+		const superClassPropertyNames: string[] = [];
+		potentialSuperFiles.forEach(file => {
+			const superClassFileContent = fs.readFileSync(file, 'utf8');
+			const superClassAst = tsquery.ast(superClassFileContent, file);
+			const superClassDeclarations = findClassDeclarations(superClassAst, superClassName);
+			const _superClassPropertyNames = superClassDeclarations
+				.map(superClassDeclaration => findClassPropertyByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE))
+				.filter(n => !!n);
+			if (_superClassPropertyNames.length > 0) {
+				ServiceParser.propertyMap.set(file, _superClassPropertyNames);
+				superClassPropertyNames.push(..._superClassPropertyNames);
+			} else {
+				superClassDeclarations.forEach(declaration =>
+					superClassPropertyNames.push(...this.findParentClassProperties(declaration, superClassAst))
+				);
+			}
+		});
+		return superClassPropertyNames;
 	}
 }

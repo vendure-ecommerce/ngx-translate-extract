@@ -1,4 +1,7 @@
 import { expect } from 'chai';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 import { ServiceParser } from '../../src/parsers/service.parser.js';
 
@@ -356,6 +359,65 @@ describe('ServiceParser', () => {
 		`;
 		const keys = parser.extract(contents, componentFilename).keys();
 		expect(keys).to.deep.equal([]);
+	});
+
+	it('should recognize the property in the base class in another file', () => {
+		const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ngxte-'))
+		const file_contents_base = `
+			export abstract class Base {
+				protected translate: TranslateService;
+			}
+		`;
+		fs.writeFileSync(path.join(dir, 'base.ts'), file_contents_base);
+		const file_contents_middle = `
+			import { Base } from './base';
+			export class Middle extends Base {
+				public constructor() {
+					super();
+					this.translate.instant('middle');
+				}
+			}
+		`;
+		const file_name_middle = path.join(dir, 'middle.ts')
+		let keys = parser.extract(file_contents_middle, file_name_middle).keys();
+		expect(keys).to.deep.equal(["middle"]);
+		// also assert that multi-level works
+		fs.writeFileSync(file_name_middle, file_contents_middle);
+		const contents = `
+			import { Middle } from './middle';
+
+			export class Test extends Middle {
+				public constructor() {
+					super();
+					this.translate.instant("test");
+				}
+			}
+		`;
+		keys = parser.extract(contents, path.join(dir, 'test.ts')).keys();
+		expect(keys).to.deep.equal(["test"]);
+	});
+
+	it('should work with modules with an index.ts', () => {
+		const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ngxte-'))
+		const file_contents_base = `
+			export abstract class Base {
+				protected translate: TranslateService;
+			}
+		`;
+		fs.mkdirSync(path.join(dir, 'base'));
+		fs.writeFileSync(path.join(dir, 'base', 'base.ts'), file_contents_base);
+		const contents = `
+			import { Base } from './base';
+
+			export class Test extends Base {
+				public constructor() {
+					super();
+					this.translate.instant("test");
+				}
+			}
+		`;
+		const keys = parser.extract(contents, path.join(dir, 'test.ts')).keys();
+		expect(keys).to.deep.equal(["test"]);
 	});
 
 	it('should not extract chained function calls', () => {
