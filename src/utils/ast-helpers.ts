@@ -1,6 +1,15 @@
 import { tsquery } from '@phenomnomnominal/tsquery';
-import pkg, { CallExpression, ClassDeclaration, ConstructorDeclaration, Expression, Identifier, NamedImports, Node, PropertyAccessExpression } from 'typescript';
-
+import pkg, {
+	Node,
+	NamedImports,
+	Identifier,
+	ClassDeclaration,
+	ConstructorDeclaration,
+	CallExpression,
+	Expression,
+	PropertyAccessExpression,
+	StringLiteral
+} from 'typescript';
 const { SyntaxKind, isStringLiteralLike, isArrayLiteralExpression, isBinaryExpression, isConditionalExpression } = pkg;
 
 export function getNamedImports(node: Node, moduleName: string): NamedImports[] {
@@ -25,9 +34,24 @@ export function getNamedImportAlias(node: Node, moduleName: string, importName: 
 	return null;
 }
 
-export function findClassDeclarations(node: Node): ClassDeclaration[] {
-	const query = 'ClassDeclaration';
+export function findClassDeclarations(node: Node, name: string = null): ClassDeclaration[] {
+	let query = 'ClassDeclaration';
+	if (name) {
+		query += `:has(Identifier[name="${name}"])`;
+	}
 	return tsquery<ClassDeclaration>(node, query);
+}
+
+export function getSuperClassName(node: Node): string | null {
+	const query = 'ClassDeclaration > HeritageClause Identifier';
+	const [result] = tsquery<Identifier>(node, query);
+	return result?.text;
+}
+
+export function getImportPath(node: Node, className: string): string | null {
+	const query = `ImportDeclaration:has(Identifier[name="${className}"]) StringLiteral`;
+	const [result] = tsquery<StringLiteral>(node, query);
+	return result?.text;
 }
 
 export function findClassPropertyByType(node: ClassDeclaration, type: string): string | null {
