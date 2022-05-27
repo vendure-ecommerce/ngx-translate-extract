@@ -16,6 +16,7 @@ import {
 } from '../utils/ast-helpers.js';
 import * as path from 'path';
 import * as fs from 'fs';
+import { loadSync } from 'tsconfig';
 
 const TRANSLATE_SERVICE_TYPE_REFERENCE = 'TranslateService';
 const TRANSLATE_SERVICE_METHOD_NAMES = ['get', 'instant', 'stream'];
@@ -71,7 +72,6 @@ export class ServiceParser implements ParserInterface {
 		return propNames.flatMap(name => findPropertyCallExpressions(classDeclaration, name, TRANSLATE_SERVICE_METHOD_NAMES));
 	}
 
-	/* Adopted from https://github.com/phenomnomnominal/tsquery/issues/30#issuecomment-428139650 */
 	private findParentClassProperties(classDeclaration: ClassDeclaration, ast: SourceFile): string[] {
 		const superClassName = getSuperClassName(classDeclaration);
 		if (!superClassName) {
@@ -84,14 +84,32 @@ export class ServiceParser implements ParserInterface {
 			return [];
 		}
 
-		const currDir = path.dirname(ast.fileName);
-        const superClassPath = path.resolve(currDir, importPath);
-        if (superClassPath in ServiceParser.propertyMap) {
-            return ServiceParser.propertyMap.get(superClassPath);
-        }
-        const superClassFile = superClassPath + '.ts';
-        let potentialSuperFiles: string[];
-        if (fs.existsSync(superClassFile) && fs.lstatSync(superClassFile).isFile()) {
+		const currDir = path.join(path.dirname(ast.fileName), '/');
+
+		const key = `${currDir}|${importPath}`;
+		if (key in ServiceParser.propertyMap) {
+			return ServiceParser.propertyMap.get(key);
+		}
+
+		let superClassPath: string;
+		if (importPath.startsWith('.')) {
+			// relative import, use currDir
+			superClassPath = path.resolve(currDir, importPath);
+		} else if (importPath.startsWith('/')) {
+			// absolute relative import, use path directly
+			superClassPath = importPath;
+		} else {
+			// absolute import, use baseUrl if present
+			const config = loadSync(currDir);
+			let baseUrl = config?.config?.compilerOptions?.baseUrl;
+			if (baseUrl) {
+				baseUrl = path.resolve(path.dirname(config.path), baseUrl);
+			}
+			superClassPath = path.resolve(baseUrl ?? currDir, importPath);
+		}
+		const superClassFile = superClassPath + '.ts';
+		let potentialSuperFiles: string[];
+		if (fs.existsSync(superClassFile) && fs.lstatSync(superClassFile).isFile()) {
 			potentialSuperFiles = [superClassFile];
 		} else if (fs.existsSync(superClassPath) && fs.lstatSync(superClassPath).isDirectory()) {
 			potentialSuperFiles = fs.readdirSync(superClassPath).filter(file => file.endsWith('.ts')).map(file => path.join(superClassPath, file));
@@ -100,23 +118,23 @@ export class ServiceParser implements ParserInterface {
 			return [];
 		}
 
-		const superClassPropertyNames: string[] = [];
+		const allSuperClassPropertyNames: string[] = [];
 		potentialSuperFiles.forEach(file => {
 			const superClassFileContent = fs.readFileSync(file, 'utf8');
 			const superClassAst = tsquery.ast(superClassFileContent, file);
 			const superClassDeclarations = findClassDeclarations(superClassAst, superClassName);
-			const _superClassPropertyNames = superClassDeclarations
+			const superClassPropertyNames = superClassDeclarations
 				.map(superClassDeclaration => findClassPropertyByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE))
 				.filter(n => !!n);
-			if (_superClassPropertyNames.length > 0) {
-				ServiceParser.propertyMap.set(file, _superClassPropertyNames);
-				superClassPropertyNames.push(..._superClassPropertyNames);
+			if (superClassPropertyNames.length > 0) {
+				ServiceParser.propertyMap.set(file, superClassPropertyNames);
+				allSuperClassPropertyNames.push(...superClassPropertyNames);
 			} else {
 				superClassDeclarations.forEach(declaration =>
-					superClassPropertyNames.push(...this.findParentClassProperties(declaration, superClassAst))
+					allSuperClassPropertyNames.push(...this.findParentClassProperties(declaration, superClassAst))
 				);
 			}
 		});
-		return superClassPropertyNames;
+		return allSuperClassPropertyNames;
 	}
 }
