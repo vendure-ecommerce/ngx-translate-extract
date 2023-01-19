@@ -61,4 +61,14 @@ describe('MarkerParser', () => {
 		const keys = parser.extract(contents, componentFilename).keys();
 		expect(keys).to.deep.equal(['DYNAMIC_TRAD.val1', 'DYNAMIC_TRAD.val2']);
 	});
+
+	it('should handle forks of the original @biesbjerg/ngx-translate-extract-marker', () => {
+		const contents = `
+		import { marker } from '@colsen1991/ngx-translate-extract-marker';
+
+		marker('Hello world')
+		`;
+		const keys = parser.extract(contents, componentFilename).keys();
+		expect(keys).to.deep.equal(['Hello world']);
+	});
 });

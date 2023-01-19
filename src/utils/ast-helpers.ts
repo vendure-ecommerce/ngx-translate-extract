@@ -1,20 +1,10 @@
 import { tsquery } from '@phenomnomnominal/tsquery';
-import {
-	Node,
-	NamedImports,
-	Identifier,
-	ClassDeclaration,
-	ConstructorDeclaration,
-	CallExpression,
-	Expression,
-	PropertyAccessExpression
-} from 'typescript';
+import pkg, { CallExpression, ClassDeclaration, ConstructorDeclaration, Expression, Identifier, NamedImports, Node, PropertyAccessExpression } from 'typescript';
 
-import pkg from 'typescript';
 const { SyntaxKind, isStringLiteralLike, isArrayLiteralExpression, isBinaryExpression, isConditionalExpression } = pkg;
 
 export function getNamedImports(node: Node, moduleName: string): NamedImports[] {
-	const query = `ImportDeclaration[moduleSpecifier.text="${moduleName}"] NamedImports`;
+	const query = `ImportDeclaration[moduleSpecifier.text=/${moduleName}/] NamedImports`;
 	return tsquery<NamedImports>(node, query);
 }
 
@@ -45,7 +35,7 @@ export function findClassPropertyByType(node: ClassDeclaration, type: string): s
 }
 
 export function findConstructorDeclaration(node: ClassDeclaration): ConstructorDeclaration {
-	const query = `Constructor`;
+	const query = 'Constructor';
 	const [result] = tsquery<ConstructorDeclaration>(node, query);
 	return result;
 }
@@ -64,8 +54,7 @@ export function findMethodCallExpressions(node: Node, propName: string, fnName: 
 		fnName = fnName.join('|');
 	}
 	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnName})$/]):has(PropertyAccessExpression:has(Identifier[name="${propName}"]):not(:has(ThisKeyword)))`;
-	const nodes = tsquery<PropertyAccessExpression>(node, query).map((n) => n.parent as CallExpression);
-	return nodes;
+	return tsquery<PropertyAccessExpression>(node, query).map((n) => n.parent as CallExpression);
 }
 
 export function findClassPropertyConstructorParameterByType(node: ClassDeclaration, type: string): string | null {
@@ -91,8 +80,7 @@ export function findFunctionCallExpressions(node: Node, fnName: string | string[
 		fnName = fnName.join('|');
 	}
 	const query = `CallExpression:has(Identifier[name="${fnName}"]):not(:has(PropertyAccessExpression))`;
-	const nodes = tsquery<CallExpression>(node, query);
-	return nodes;
+	return tsquery<CallExpression>(node, query);
 }
 
 export function findPropertyCallExpressions(node: Node, prop: string, fnName: string | string[]): CallExpression[] {
@@ -100,8 +88,7 @@ export function findPropertyCallExpressions(node: Node, prop: string, fnName: st
 		fnName = fnName.join('|');
 	}
 	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnName})$/]):has(PropertyAccessExpression:has(Identifier[name="${prop}"]):has(ThisKeyword))`;
-	const nodes = tsquery<PropertyAccessExpression>(node, query).map((n) => n.parent as CallExpression);
-	return nodes;
+	return tsquery<PropertyAccessExpression>(node, query).map((n) => n.parent as CallExpression);
 }
 
 export function getStringsFromExpression(expression: Expression): string[] {
