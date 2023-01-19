@@ -6,12 +6,12 @@
         "noImplicitUseStrict": true,
         "removeComments": true,
         "declaration": true,
-        "target": "esnext",
+        "target": "es2020",
         "lib": [
-            "es2019",
-            "DOM"
+            "es2020",
+            "dom"
         ],
-        "module": "ES2020",
+        "module": "es2020",
         "esModuleInterop": true,
         "moduleResolution": "node",
         "outDir": "dist",

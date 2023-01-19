@@ -1,8 +1,0 @@
-{
-  "extends": ["./tslint.json", "tslint-etc"],
-  "jsRules": {},
-  "rules": {
-    "ordered-imports": false,
-    "no-unused-declaration": true
-  }
-}

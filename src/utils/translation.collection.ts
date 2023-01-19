@@ -14,9 +14,7 @@ export class TranslationCollection {
 	}
 
 	public addKeys(keys: string[]): TranslationCollection {
-		const values = keys.reduce((results, key) => {
-			return { ...results, [key]: '' };
-		}, {} as TranslationType);
+		const values = keys.reduce((results, key) => ({ ...results, [key]: '' }), {} as TranslationType);
 		return new TranslationCollection({ ...this.values, ...values });
 	}
 

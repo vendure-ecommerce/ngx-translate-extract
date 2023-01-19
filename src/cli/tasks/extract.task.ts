@@ -1,14 +1,15 @@
+import { cyan, green, bold, dim, red } from 'colorette';
+import pkg from 'glob';
+import * as fs from 'fs';
+import * as path from 'path';
+
 import { TranslationCollection } from '../../utils/translation.collection.js';
 import { TaskInterface } from './task.interface.js';
 import { ParserInterface } from '../../parsers/parser.interface.js';
 import { PostProcessorInterface } from '../../post-processors/post-processor.interface.js';
 import { CompilerInterface } from '../../compilers/compiler.interface.js';
 
-import { cyan, green, bold, dim, red } from 'colorette';
-import pkg from 'glob';
 const { sync } = pkg;
-import * as fs from 'fs';
-import * as path from 'path';
 
 export interface ExtractTaskOptionsInterface {
 	replace?: boolean;
@@ -40,7 +41,7 @@ export class ExtractTask implements TaskInterface {
 
 		this.out(bold('Extracting:'));
 		const extracted = this.extract();
-		this.out(green(`\nFound %d strings.\n`), extracted.count());
+		this.out(green('\nFound %d strings.\n'), extracted.count());
 
 		this.out(bold('Saving:'));
 
@@ -59,7 +60,7 @@ export class ExtractTask implements TaskInterface {
 				try {
 					existing = this.compiler.parse(fs.readFileSync(outputPath, 'utf-8'));
 				} catch (e) {
-					this.out(`%s %s`, dim(`- ${outputPath}`), red(`[ERROR]`));
+					this.out('%s %s', dim(`- ${outputPath}`), red('[ERROR]'));
 					throw e;
 				}
 			}
@@ -74,12 +75,13 @@ export class ExtractTask implements TaskInterface {
 			try {
 				let event = 'CREATED';
 				if (fs.existsSync(outputPath)) {
+				  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
 					this.options.replace ? (event = 'REPLACED') : (event = 'MERGED');
 				}
 				this.save(outputPath, final);
-				this.out(`%s %s`, dim(`- ${outputPath}`), green(`[${event}]`));
+				this.out('%s %s', dim(`- ${outputPath}`), green(`[${event}]`));
 			} catch (e) {
-				this.out(`%s %s`, dim(`- ${outputPath}`), red(`[ERROR]`));
+				this.out('%s %s', dim(`- ${outputPath}`), red('[ERROR]'));
 				throw e;
 			}
 		});
@@ -132,6 +134,7 @@ export class ExtractTask implements TaskInterface {
 
 	/**
 	 * Compile and save translations
+	 * @param output
 	 * @param collection
 	 */
 	protected save(output: string, collection: TranslationCollection): void {
