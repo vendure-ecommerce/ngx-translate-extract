@@ -25,8 +25,8 @@ Choose the version corresponding to your Angular version:
 
 | Angular    | ngx-translate-extract                                                                      |
 |------------|--------------------------------------------------------------------------------------------|
-| 14         | 8.0.3+                                                                                     |
-| 13         | 8.0.3+                                                                                     |
+| 14         | 8.0.5+                                                                                     |
+| 13         | 8.0.5+                                                                                     |
 | 8.x – 12.x | [@biesbjerg/ngx-translate-extract](https://github.com/biesbjerg/ngx-translate-extract) 7.x |
 
 Add a script to your project's `package.json`:

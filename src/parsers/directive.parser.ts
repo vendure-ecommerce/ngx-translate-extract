@@ -17,9 +17,9 @@ import {
 	TmplAstTextAttribute as TextAttribute
 } from '@angular/compiler';
 
-import { ParserInterface } from './parser.interface';
-import { TranslationCollection } from '../utils/translation.collection';
-import { extractComponentInlineTemplate, isPathAngularComponent } from '../utils/utils';
+import { ParserInterface } from './parser.interface.js';
+import { TranslationCollection } from '../utils/translation.collection.js';
+import { extractComponentInlineTemplate, isPathAngularComponent } from '../utils/utils.js';
 
 export const TRANSLATE_ATTR_NAMES = ['translate', 'marker'];
 type ElementLike = Element | Template;

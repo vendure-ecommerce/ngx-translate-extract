@@ -1,6 +1,6 @@
 {
   "name": "@colsen1991/ngx-translate-extract",
-  "version": "8.0.4",
+  "version": "8.0.5",
   "description": "Extract strings from projects using ngx-translate",
   "author": "Kim Biesbjerg <kim@biesbjerg.com>",
   "maintainers": [
@@ -16,7 +16,7 @@
     "lint": "eslint ./src/**/*.ts"
   },
   "dependencies": {
-    "@angular/compiler": ">=13.1.2",
+    "@angular/compiler": "^13.1.2",
     "@phenomnomnominal/tsquery": "^4.1.1",
     "@types/expect": "^24.3.0",
     "boxen": "^6.2.1",

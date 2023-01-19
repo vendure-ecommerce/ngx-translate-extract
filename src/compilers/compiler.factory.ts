@@ -1,7 +1,7 @@
-import { CompilerInterface } from './compiler.interface';
-import { JsonCompiler } from './json.compiler';
-import { NamespacedJsonCompiler } from './namespaced-json.compiler';
-import { PoCompiler } from './po.compiler';
+import { CompilerInterface } from './compiler.interface.js';
+import { JsonCompiler } from './json.compiler.js';
+import { NamespacedJsonCompiler } from './namespaced-json.compiler.js';
+import { PoCompiler } from './po.compiler.js';
 
 export class CompilerFactory {
 	public static create(format: string, options?: {}): CompilerInterface {
