@@ -1,27 +1,27 @@
 import {
-	parseTemplate,
-	TmplAstNode as Node,
-	TmplAstElement as Element,
-	TmplAstText as Text,
-	TmplAstTemplate as Template,
-	TmplAstTextAttribute as TextAttribute,
-	TmplAstBoundAttribute as BoundAttribute,
 	AST,
 	ASTWithSource,
-	LiteralPrimitive,
-	Conditional,
 	Binary,
 	BindingPipe,
+	Conditional,
 	Interpolation,
 	LiteralArray,
-	LiteralMap
+	LiteralMap,
+	LiteralPrimitive,
+	parseTemplate,
+	TmplAstBoundAttribute as BoundAttribute,
+	TmplAstElement as Element,
+	TmplAstNode as Node,
+	TmplAstTemplate as Template,
+	TmplAstText as Text,
+	TmplAstTextAttribute as TextAttribute
 } from '@angular/compiler';
 
-import { ParserInterface } from './parser.interface.js';
-import { TranslationCollection } from '../utils/translation.collection.js';
-import { isPathAngularComponent, extractComponentInlineTemplate } from '../utils/utils.js';
+import { ParserInterface } from './parser.interface';
+import { TranslationCollection } from '../utils/translation.collection';
+import { extractComponentInlineTemplate, isPathAngularComponent } from '../utils/utils';
 
-const TRANSLATE_ATTR_NAME = 'translate';
+export const TRANSLATE_ATTR_NAMES = ['translate', 'marker'];
 type ElementLike = Element | Template;
 
 export class DirectiveParser implements ParserInterface {
@@ -35,13 +35,13 @@ export class DirectiveParser implements ParserInterface {
 		const elements: ElementLike[] = this.getElementsWithTranslateAttribute(nodes);
 
 		elements.forEach((element) => {
-			const attribute = this.getAttribute(element, TRANSLATE_ATTR_NAME);
+			const attribute = this.getAttribute(element, TRANSLATE_ATTR_NAMES);
 			if (attribute?.value) {
 				collection = collection.add(attribute.value);
 				return;
 			}
 
-			const boundAttribute = this.getBoundAttribute(element, TRANSLATE_ATTR_NAME);
+			const boundAttribute = this.getBoundAttribute(element, TRANSLATE_ATTR_NAMES);
 			if (boundAttribute?.value) {
 				this.getLiteralPrimitives(boundAttribute.value).forEach((literalPrimitive) => {
 					collection = collection.add(literalPrimitive.value);
@@ -63,11 +63,12 @@ export class DirectiveParser implements ParserInterface {
 	 */
 	protected getElementsWithTranslateAttribute(nodes: Node[]): ElementLike[] {
 		let elements: ElementLike[] = [];
+
 		nodes.filter(this.isElementLike).forEach((element) => {
-			if (this.hasAttribute(element, TRANSLATE_ATTR_NAME)) {
+			if (this.hasAttributes(element, TRANSLATE_ATTR_NAMES)) {
 				elements = [...elements, element];
 			}
-			if (this.hasBoundAttribute(element, TRANSLATE_ATTR_NAME)) {
+			if (this.hasBoundAttribute(element, TRANSLATE_ATTR_NAMES)) {
 				elements = [...elements, element];
 			}
 			const childElements = this.getElementsWithTranslateAttribute(element.children);
@@ -89,35 +90,37 @@ export class DirectiveParser implements ParserInterface {
 	/**
 	 * Check if attribute is present on element
 	 * @param element
+	 * @param name
 	 */
-	protected hasAttribute(element: ElementLike, name: string): boolean {
+	protected hasAttributes(element: ElementLike, name: string[]): boolean {
 		return this.getAttribute(element, name) !== undefined;
 	}
 
 	/**
 	 * Get attribute value if present on element
 	 * @param element
+	 * @param names
 	 */
-	protected getAttribute(element: ElementLike, name: string): TextAttribute {
-		return element.attributes.find((attribute) => attribute.name === name);
+	protected getAttribute(element: ElementLike, names: string[]): TextAttribute {
+		return element.attributes.find((attribute) => names.includes(attribute.name));
 	}
 
 	/**
 	 * Check if bound attribute is present on element
 	 * @param element
-	 * @param name
+	 * @param names
 	 */
-	protected hasBoundAttribute(element: ElementLike, name: string): boolean {
-		return this.getBoundAttribute(element, name) !== undefined;
+	protected hasBoundAttribute(element: ElementLike, names: string[]): boolean {
+		return this.getBoundAttribute(element, names) !== undefined;
 	}
 
 	/**
 	 * Get bound attribute if present on element
 	 * @param element
-	 * @param name
+	 * @param names
 	 */
-	protected getBoundAttribute(element: ElementLike, name: string): BoundAttribute {
-		return element.inputs.find((input) => input.name === name);
+	protected getBoundAttribute(element: ElementLike, names: string[]): BoundAttribute {
+		return element.inputs.find((input) => names.includes(input.name));
 	}
 
 	/**
