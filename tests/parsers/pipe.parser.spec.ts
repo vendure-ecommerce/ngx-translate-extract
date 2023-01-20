@@ -210,50 +210,41 @@ describe('PipeParser', () => {
 				expect(keys).to.deep.equal([]);
 			});
 
-            it('should extract translate pipe used as pipe argument', () => {
-                const contents = `{{ value | valueToTranslationKey: ('argument' | translate) }}`;
-                const keys = parser.extract(contents, templateFilename).keys();
-                expect(keys).to.deep.equal(['argument']);
-            });
+			it('should extract translate pipe used as pipe argument', () => {
+				const contents = '{{ value | valueToTranslationKey: (\'argument\' | translate) }}';
+				const keys = parser.extract(contents, templateFilename).keys();
+				expect(keys).to.deep.equal(['argument']);
+			});
 
-            it('should extract nested uses of translate pipe', () => {
-                const contents = `{{ 'Hello' | translate: {world: ('World' | translate)} }}`;
-                const keys = parser.extract(contents, templateFilename).keys();
-                expect(keys).to.deep.equal(['Hello', 'World']);
-            });
+			it('should extract nested uses of translate pipe', () => {
+				const contents = '{{ \'Hello\' | translate: {world: (\'World\' | translate)} }}';
+				const keys = parser.extract(contents, templateFilename).keys();
+				expect(keys).to.deep.equal(['Hello', 'World']);
+			});
 
-            it('should extract strings from piped arguments inside a function calls on templates', () => {
-                const contents = `{{ callMe('Hello' | translate, 'World' | translate ) }}`;
-                const keys = parser.extract(contents, templateFilename).keys();
-                expect(keys).to.deep.equal([`Hello`, `World`]);
-            });
+			it('should extract strings from piped arguments inside a function calls on templates', () => {
+				const contents = '{{ callMe(\'Hello\' | translate, \'World\' | translate ) }}';
+				const keys = parser.extract(contents, templateFilename).keys();
+				expect(keys).to.deep.equal(['Hello', 'World']);
+			});
+
+			it('should extract from objects in property bindings', () => {
+				const contents = '<hello [values] ="{ hello: (\'Hello\' | translate), world: (\'World\' | translate) }"></hello>';
+				const keys = parser.extract(contents, templateFilename).keys();
+				expect(keys).to.deep.equal(['Hello', 'World']);
+			});
+
+			it('should extract from structural directives', () => {
+				const contents = '<ng-container *ngIf="\'Hello\' | translate as hello">{{hello}}</ng-container>';
+				const keys = parser.extract(contents, templateFilename).keys();
+				expect(keys).to.deep.equal(['Hello']);
+			});
+
+			it('should extract form inputs to structural directives', () => {
+				const contents = '<ng-container *ngTemplateOutlet="template; context:{ hello: \'Hello\' | translate, world: \'World\' | translate }"></ng-container>';
+				const keys = parser.extract(contents, templateFilename).keys();
+				expect(keys).to.deep.equal(['Hello', 'World']);
+			});
 		});
-	});
-
-	it('should extract from objects in property bindings', () => {
-		const contents = `
-		<hello [values]="{
-			hello: ('Hello' | translate),
-			world: ('World' | translate) }"></hello>`;
-		const keys = parser.extract(contents, templateFilename).keys();
-		expect(keys).to.deep.equal([`Hello`, `World`]);
-	});
-
-	it('should extract from structural directives', () => {
-		const contents = `
-		<ng-container *ngIf="'Hello' | translate as hello">{{hello}}</ng-container>
-		`;
-		const keys = parser.extract(contents, templateFilename).keys();
-		expect(keys).to.deep.equal([`Hello`]);
-	});
-
-	it('should extract form inputs to structural directives', () => {
-		const contents = `
-		<ng-container *ngTemplateOutlet="template ; context:{
-			hello: 'Hello' | translate,
-			world: 'World' | translate,
-		}"></ng-container>`;
-		const keys = parser.extract(contents, templateFilename).keys();
-		expect(keys).to.deep.equal([`Hello`, `World`]);
 	});
 });

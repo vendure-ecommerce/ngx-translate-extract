@@ -129,3 +129,4 @@ For instance, `gettext-parser:1.2.2` does not support HTML tags in translation k
 - Original library, idea and code: [Kim Biesbjerg](https://github.com/biesbjerg/ngx-translate-extract) ❤️
 - Further updates and improvements were then made by [bartholomej](https://github.com/bartholomej) ❤️
 - Further updates and improvements were then made by [michaelbromley](https://github.com/michaelbromley)/[vendure-ecommerce](https://github.com/vendure-ecommerce) ❤️
+- Further updates and improvements were made by [P4's](https://github.com/P4) ❤️

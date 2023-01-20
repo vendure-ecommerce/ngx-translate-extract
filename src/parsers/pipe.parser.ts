@@ -157,16 +157,6 @@ export class PipeParser implements ParserInterface {
 		return [].concat(...array);
 	}
 
-	protected expressionIsOrHasBindingPipe(exp: any): exp is BindingPipe {
-		if (exp.name && TRANSLATE_PIPE_NAMES.includes(exp.name)) {
-			return true;
-		}
-		if (exp.exp && exp.exp instanceof BindingPipe) {
-			return this.expressionIsOrHasBindingPipe(exp.exp);
-		}
-		return false;
-	}
-
 	protected parseTemplate(template: string, path: string): TmplAstNode[] {
 		return parseTemplate(template, path).nodes;
 	}
