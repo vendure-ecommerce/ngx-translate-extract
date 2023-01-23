@@ -89,9 +89,16 @@ export function findPropertyCallExpressions(node, prop, fnName) {
     if (Array.isArray(fnName)) {
         fnName = fnName.join('|');
     }
-    const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnName})$/]):has(PropertyAccessExpression:has(Identifier[name="${prop}"]):has(ThisKeyword))`;
-    const nodes = tsquery(node, query).map((n) => n.parent);
-    return nodes;
+    const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnName})$/]) > PropertyAccessExpression:has(ThisKeyword) > Identifier[name="${prop}"]`;
+    const nodes = tsquery(node, query);
+    const filtered = nodes.reduce((result, n) => {
+        if (tsquery(n.parent, `PropertyAccessExpression > ThisKeyword`).length > 0 &&
+            tsquery(n.parent.parent, `PropertyAccessExpression > Identifier[name=/^(${fnName})$/]`).length > 0) {
+            result.push(n.parent.parent.parent);
+        }
+        return result;
+    }, []);
+    return filtered;
 }
 export function getStringsFromExpression(expression) {
     if (isStringLiteralLike(expression)) {
