@@ -17,7 +17,7 @@ describe('ServiceParser', () => {
 	});
 
 	afterEach(() => {
-		fs.rmdirSync(tempDir, { recursive: true });
+		fs.rmSync(tempDir, { recursive: true });
 	});
 
 	it('should extract strings when TranslateService is accessed directly via constructor parameter', () => {
@@ -28,7 +28,7 @@ describe('ServiceParser', () => {
 					translateService.get('It works!');
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['It works!']);
 	});
 
@@ -42,7 +42,7 @@ describe('ServiceParser', () => {
 					this._translateService.get(message || 'Fallback message');
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Fallback message']);
 	});
 
@@ -56,7 +56,7 @@ describe('ServiceParser', () => {
 					this._translateService.get(message ? message : 'Fallback message');
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Fallback message']);
 	});
 
@@ -69,7 +69,7 @@ describe('ServiceParser', () => {
 					this._translateService.get('Hello World');
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Hello World']);
 	});
 
@@ -82,7 +82,7 @@ describe('ServiceParser', () => {
 					this._translateService.instant('Hello World');
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Hello World']);
 	});
 
@@ -95,7 +95,7 @@ describe('ServiceParser', () => {
 					this._translateService.stream('Hello World');
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Hello World']);
 	});
 
@@ -108,7 +108,7 @@ describe('ServiceParser', () => {
 					this._translateService.get(['Hello', 'World']);
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Hello', 'World']);
 	});
 
@@ -121,7 +121,7 @@ describe('ServiceParser', () => {
 					this._translateService.instant(['Hello', 'World']);
 				}
 		`;
-		const key = parser.extract(contents, componentFilename).keys();
+		const key = parser.extract(contents, componentFilename)?.keys();
 		expect(key).to.deep.equal(['Hello', 'World']);
 	});
 
@@ -134,7 +134,7 @@ describe('ServiceParser', () => {
 					this._translateService.stream(['Hello', 'World']);
 				}
 		`;
-		const key = parser.extract(contents, componentFilename).keys();
+		const key = parser.extract(contents, componentFilename)?.keys();
 		expect(key).to.deep.equal(['Hello', 'World']);
 	});
 
@@ -147,7 +147,7 @@ describe('ServiceParser', () => {
 					this._translateService.get([\`Hello\`, \`World\`]);
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Hello', 'World']);
 	});
 
@@ -165,7 +165,7 @@ describe('ServiceParser', () => {
 					this._otherService.stream('Hi there');
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal([]);
 	});
 
@@ -185,7 +185,7 @@ describe('ServiceParser', () => {
 					this._translateService.get([ 'You' , 'Today' ]);
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Hello', 'World', 'How', 'Are', 'You', 'Today']);
 	});
 
@@ -199,7 +199,7 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal([]);
 	});
 
@@ -213,7 +213,7 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['You are expected at {{time}}']);
 	});
 
@@ -226,7 +226,7 @@ describe('ServiceParser', () => {
 					this._translateService.instant('Hello World');
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal([]);
 	});
 
@@ -242,7 +242,7 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['yes']);
 	});
 
@@ -276,7 +276,7 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Extract me!', 'Hello!']);
 	});
 
@@ -291,7 +291,7 @@ describe('ServiceParser', () => {
 					this.translateService.instant('Hello World');
 				}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Hello World']);
 	});
 
@@ -311,7 +311,7 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Back']);
 	});
 
@@ -326,7 +326,7 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal([]);
 	});
 
@@ -341,7 +341,7 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal([]);
 	});
 
@@ -363,7 +363,7 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal([]);
 	});
 
@@ -384,7 +384,7 @@ describe('ServiceParser', () => {
 			}
 		`;
 		const file_name_middle = path.join(tempDir, 'middle.ts');
-		let keys = parser.extract(file_contents_middle, file_name_middle).keys();
+		let keys = parser.extract(file_contents_middle, file_name_middle)?.keys();
 		expect(keys).to.deep.equal(['middle']);
 		// also assert that multi-level works
 		fs.writeFileSync(file_name_middle, file_contents_middle);
@@ -398,7 +398,32 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		keys = parser.extract(contents, path.join(tempDir, 'test.ts')).keys();
+		keys = parser.extract(contents, path.join(tempDir, 'test.ts'))?.keys();
+		expect(keys).to.deep.equal(['test']);
+	});
+
+	it('should work with getters in base classes', () => {
+		const file_contents_base = `
+			export abstract class Base {
+				protected get translate(): TranslateService {
+					return this._translate;
+				};
+
+				private _translate: TranslateService;
+			}
+		`;
+		fs.writeFileSync(path.join(tempDir, 'base.ts'), file_contents_base);
+		const contents = `
+			import { Base } from './base';
+
+			export class Test extends Base {
+				public constructor() {
+					super();
+					this.translate.instant("test");
+				}
+			}
+		`;
+		const keys = parser.extract(contents, path.join(tempDir, 'test.ts'))?.keys();
 		expect(keys).to.deep.equal(['test']);
 	});
 
@@ -420,7 +445,7 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, path.join(tempDir, 'test.ts')).keys();
+		const keys = parser.extract(contents, path.join(tempDir, 'test.ts'))?.keys();
 		expect(keys).to.deep.equal(['test']);
 	});
 
@@ -450,8 +475,25 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, path.join(tempDir, 'src', 'other_folder', 'test.ts')).keys();
+		const keys = parser.extract(contents, path.join(tempDir, 'src', 'other_folder', 'test.ts'))?.keys();
 		expect(keys).to.deep.equal(['test']);
+	});
+
+	it('should extract correctly when the base class is in the same file', () => {
+		const contents = `
+			export abstract class Base {
+				protected translate: TranslateService;
+			}
+
+			export class Test extends Base {
+				public constructor() {
+					super();
+					this.translate.instant("test");
+				}
+			}
+		`;
+		const keys = parser.extract(contents, componentFilename)?.keys();
+		expect(keys).to.deep.equal([]);
 	});
 
 	it('should not extract chained function calls', () => {
@@ -465,7 +507,7 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const keys = parser.extract(contents, componentFilename).keys();
+		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal([]);
 	});
 });

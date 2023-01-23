@@ -5,7 +5,7 @@ import { ParserInterface } from './parser.interface.js';
 import { TranslationCollection } from '../utils/translation.collection.js';
 import {
 	findClassDeclarations,
-	findClassPropertyByType,
+	findClassPropertiesByType,
 	findPropertyCallExpressions,
 	findMethodCallExpressions,
 	getStringsFromExpression,
@@ -62,13 +62,10 @@ export class ServiceParser implements ParserInterface {
 	}
 
 	protected findPropertyCallExpressions(classDeclaration: ClassDeclaration, sourceFile: SourceFile): CallExpression[] {
-		let propNames: string[];
-		const propName: string = findClassPropertyByType(classDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
-		if (propName) {
-			propNames = [propName];
-		} else {
-			propNames = this.findParentClassProperties(classDeclaration, sourceFile);
-		}
+		let propNames = [
+			...findClassPropertiesByType(classDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE),
+			...this.findParentClassProperties(classDeclaration, sourceFile)
+		];
 		return propNames.flatMap((name) => findPropertyCallExpressions(classDeclaration, name, TRANSLATE_SERVICE_METHOD_NAMES));
 	}
 
@@ -127,8 +124,7 @@ export class ServiceParser implements ParserInterface {
 			const superClassAst = tsquery.ast(superClassFileContent, file);
 			const superClassDeclarations = findClassDeclarations(superClassAst, superClassName);
 			const superClassPropertyNames = superClassDeclarations
-				.map((superClassDeclaration) => findClassPropertyByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE))
-				.filter((n) => !!n);
+				.flatMap((superClassDeclaration) => findClassPropertiesByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE))
 			if (superClassPropertyNames.length > 0) {
 				ServiceParser.propertyMap.set(file, superClassPropertyNames);
 				allSuperClassPropertyNames.push(...superClassPropertyNames);

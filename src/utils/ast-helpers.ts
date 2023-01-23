@@ -54,8 +54,12 @@ export function getImportPath(node: Node, className: string): string | null {
 	return result?.text;
 }
 
-export function findClassPropertyByType(node: ClassDeclaration, type: string): string | null {
-	return findClassPropertyConstructorParameterByType(node, type) || findClassPropertyDeclarationByType(node, type);
+export function findClassPropertiesByType(node: ClassDeclaration, type: string): string[] {
+	return [
+		...findClassPropertiesConstructorParameterByType(node, type),
+		...findClassPropertiesDeclarationByType(node, type),
+		...findClassPropertiesGetterByType(node, type)
+	];
 }
 
 export function findConstructorDeclaration(node: ClassDeclaration): ConstructorDeclaration {
@@ -81,22 +85,22 @@ export function findMethodCallExpressions(node: Node, propName: string, fnName: 
 	return tsquery<PropertyAccessExpression>(node, query).map((n) => n.parent as CallExpression);
 }
 
-export function findClassPropertyConstructorParameterByType(node: ClassDeclaration, type: string): string | null {
+export function findClassPropertiesConstructorParameterByType(node: ClassDeclaration, type: string): string[] {
 	const query = `Constructor Parameter:has(TypeReference > Identifier[name="${type}"]):has(PublicKeyword,ProtectedKeyword,PrivateKeyword) > Identifier`;
-	const [result] = tsquery<Identifier>(node, query);
-	if (result) {
-		return result.text;
-	}
-	return null;
+	const result = tsquery<Identifier>(node, query);
+	return result.map((n) => n.text);
 }
 
-export function findClassPropertyDeclarationByType(node: ClassDeclaration, type: string): string | null {
+export function findClassPropertiesDeclarationByType(node: ClassDeclaration, type: string): string[] {
 	const query = `PropertyDeclaration:has(TypeReference > Identifier[name="${type}"]) > Identifier`;
-	const [result] = tsquery<Identifier>(node, query);
-	if (result) {
-		return result.text;
-	}
-	return null;
+	const result = tsquery<Identifier>(node, query);
+	return result.map((n) => n.text);
+}
+
+export function findClassPropertiesGetterByType(node: ClassDeclaration, type: string): string[] {
+	const query = `GetAccessor:has(TypeReference > Identifier[name="${type}"]) > Identifier`;
+	const result = tsquery<Identifier>(node, query);
+	return result.map((n) => n.text);
 }
 
 export function findFunctionCallExpressions(node: Node, fnName: string | string[]): CallExpression[] {
