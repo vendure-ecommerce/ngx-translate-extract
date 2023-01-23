@@ -383,9 +383,9 @@ describe('ServiceParser', () => {
 				}
 			}
 		`;
-		const file_name_middle = path.join(tempDir, 'middle.ts')
+		const file_name_middle = path.join(tempDir, 'middle.ts');
 		let keys = parser.extract(file_contents_middle, file_name_middle).keys();
-		expect(keys).to.deep.equal(["middle"]);
+		expect(keys).to.deep.equal(['middle']);
 		// also assert that multi-level works
 		fs.writeFileSync(file_name_middle, file_contents_middle);
 		const contents = `
@@ -399,7 +399,7 @@ describe('ServiceParser', () => {
 			}
 		`;
 		keys = parser.extract(contents, path.join(tempDir, 'test.ts')).keys();
-		expect(keys).to.deep.equal(["test"]);
+		expect(keys).to.deep.equal(['test']);
 	});
 
 	it('should work with modules with an index.ts', () => {
@@ -421,7 +421,7 @@ describe('ServiceParser', () => {
 			}
 		`;
 		const keys = parser.extract(contents, path.join(tempDir, 'test.ts')).keys();
-		expect(keys).to.deep.equal(["test"]);
+		expect(keys).to.deep.equal(['test']);
 	});
 
 	it('should respect the baseUrl in tsconfig.json', () => {
@@ -451,7 +451,7 @@ describe('ServiceParser', () => {
 			}
 		`;
 		const keys = parser.extract(contents, path.join(tempDir, 'src', 'other_folder', 'test.ts')).keys();
-		expect(keys).to.deep.equal(["test"]);
+		expect(keys).to.deep.equal(['test']);
 	});
 
 	it('should not extract chained function calls', () => {

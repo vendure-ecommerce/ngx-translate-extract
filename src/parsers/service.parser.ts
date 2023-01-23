@@ -69,7 +69,7 @@ export class ServiceParser implements ParserInterface {
 		} else {
 			propNames = this.findParentClassProperties(classDeclaration, sourceFile);
 		}
-		return propNames.flatMap(name => findPropertyCallExpressions(classDeclaration, name, TRANSLATE_SERVICE_METHOD_NAMES));
+		return propNames.flatMap((name) => findPropertyCallExpressions(classDeclaration, name, TRANSLATE_SERVICE_METHOD_NAMES));
 	}
 
 	private findParentClassProperties(classDeclaration: ClassDeclaration, ast: SourceFile): string[] {
@@ -112,25 +112,28 @@ export class ServiceParser implements ParserInterface {
 		if (fs.existsSync(superClassFile) && fs.lstatSync(superClassFile).isFile()) {
 			potentialSuperFiles = [superClassFile];
 		} else if (fs.existsSync(superClassPath) && fs.lstatSync(superClassPath).isDirectory()) {
-			potentialSuperFiles = fs.readdirSync(superClassPath).filter(file => file.endsWith('.ts')).map(file => path.join(superClassPath, file));
+			potentialSuperFiles = fs
+				.readdirSync(superClassPath)
+				.filter((file) => file.endsWith('.ts'))
+				.map((file) => path.join(superClassPath, file));
 		} else {
 			// we cannot find the superclass, so just assume that no translate property exists
 			return [];
 		}
 
 		const allSuperClassPropertyNames: string[] = [];
-		potentialSuperFiles.forEach(file => {
+		potentialSuperFiles.forEach((file) => {
 			const superClassFileContent = fs.readFileSync(file, 'utf8');
 			const superClassAst = tsquery.ast(superClassFileContent, file);
 			const superClassDeclarations = findClassDeclarations(superClassAst, superClassName);
 			const superClassPropertyNames = superClassDeclarations
-				.map(superClassDeclaration => findClassPropertyByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE))
-				.filter(n => !!n);
+				.map((superClassDeclaration) => findClassPropertyByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE))
+				.filter((n) => !!n);
 			if (superClassPropertyNames.length > 0) {
 				ServiceParser.propertyMap.set(file, superClassPropertyNames);
 				allSuperClassPropertyNames.push(...superClassPropertyNames);
 			} else {
-				superClassDeclarations.forEach(declaration =>
+				superClassDeclarations.forEach((declaration) =>
 					allSuperClassPropertyNames.push(...this.findParentClassProperties(declaration, superClassAst))
 				);
 			}
