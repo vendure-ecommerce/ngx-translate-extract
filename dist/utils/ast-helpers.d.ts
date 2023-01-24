@@ -4,12 +4,13 @@ export declare function getNamedImportAlias(node: Node, moduleName: string, impo
 export declare function findClassDeclarations(node: Node, name?: string): ClassDeclaration[];
 export declare function getSuperClassName(node: Node): string | null;
 export declare function getImportPath(node: Node, className: string): string | null;
-export declare function findClassPropertyByType(node: ClassDeclaration, type: string): string | null;
+export declare function findClassPropertiesByType(node: ClassDeclaration, type: string): string[];
 export declare function findConstructorDeclaration(node: ClassDeclaration): ConstructorDeclaration;
 export declare function findMethodParameterByType(node: Node, type: string): string | null;
 export declare function findMethodCallExpressions(node: Node, propName: string, fnName: string | string[]): CallExpression[];
-export declare function findClassPropertyConstructorParameterByType(node: ClassDeclaration, type: string): string | null;
-export declare function findClassPropertyDeclarationByType(node: ClassDeclaration, type: string): string | null;
+export declare function findClassPropertiesConstructorParameterByType(node: ClassDeclaration, type: string): string[];
+export declare function findClassPropertiesDeclarationByType(node: ClassDeclaration, type: string): string[];
+export declare function findClassPropertiesGetterByType(node: ClassDeclaration, type: string): string[];
 export declare function findFunctionCallExpressions(node: Node, fnName: string | string[]): CallExpression[];
 export declare function findPropertyCallExpressions(node: Node, prop: string, fnName: string | string[]): CallExpression[];
 export declare function getStringsFromExpression(expression: Expression): string[];

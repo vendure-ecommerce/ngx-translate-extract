@@ -1,6 +1,6 @@
 import { tsquery } from '@phenomnomnominal/tsquery';
 import { TranslationCollection } from '../utils/translation.collection.js';
-import { findClassDeclarations, findClassPropertyByType, findPropertyCallExpressions, findMethodCallExpressions, getStringsFromExpression, findMethodParameterByType, findConstructorDeclaration, getSuperClassName, getImportPath } from '../utils/ast-helpers.js';
+import { findClassDeclarations, findClassPropertiesByType, findPropertyCallExpressions, findMethodCallExpressions, getStringsFromExpression, findMethodParameterByType, findConstructorDeclaration, getSuperClassName, getImportPath } from '../utils/ast-helpers.js';
 import * as path from 'path';
 import * as fs from 'fs';
 import { loadSync } from 'tsconfig';
@@ -40,14 +40,10 @@ export class ServiceParser {
         return findMethodCallExpressions(constructorDeclaration, paramName, TRANSLATE_SERVICE_METHOD_NAMES);
     }
     findPropertyCallExpressions(classDeclaration, sourceFile) {
-        let propNames;
-        const propName = findClassPropertyByType(classDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
-        if (propName) {
-            propNames = [propName];
-        }
-        else {
-            propNames = this.findParentClassProperties(classDeclaration, sourceFile);
-        }
+        let propNames = [
+            ...findClassPropertiesByType(classDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE),
+            ...this.findParentClassProperties(classDeclaration, sourceFile)
+        ];
         return propNames.flatMap((name) => findPropertyCallExpressions(classDeclaration, name, TRANSLATE_SERVICE_METHOD_NAMES));
     }
     findParentClassProperties(classDeclaration, ast) {
@@ -99,8 +95,7 @@ export class ServiceParser {
             const superClassAst = tsquery.ast(superClassFileContent, file);
             const superClassDeclarations = findClassDeclarations(superClassAst, superClassName);
             const superClassPropertyNames = superClassDeclarations
-                .map((superClassDeclaration) => findClassPropertyByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE))
-                .filter((n) => !!n);
+                .flatMap((superClassDeclaration) => findClassPropertiesByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE));
             if (superClassPropertyNames.length > 0) {
                 ServiceParser.propertyMap.set(file, superClassPropertyNames);
                 allSuperClassPropertyNames.push(...superClassPropertyNames);

@@ -37,8 +37,12 @@ export function getImportPath(node, className) {
     const [result] = tsquery(node, query);
     return result?.text;
 }
-export function findClassPropertyByType(node, type) {
-    return findClassPropertyConstructorParameterByType(node, type) || findClassPropertyDeclarationByType(node, type);
+export function findClassPropertiesByType(node, type) {
+    return [
+        ...findClassPropertiesConstructorParameterByType(node, type),
+        ...findClassPropertiesDeclarationByType(node, type),
+        ...findClassPropertiesGetterByType(node, type)
+    ];
 }
 export function findConstructorDeclaration(node) {
     const query = `Constructor`;
@@ -61,21 +65,20 @@ export function findMethodCallExpressions(node, propName, fnName) {
     const nodes = tsquery(node, query).map((n) => n.parent);
     return nodes;
 }
-export function findClassPropertyConstructorParameterByType(node, type) {
+export function findClassPropertiesConstructorParameterByType(node, type) {
     const query = `Constructor Parameter:has(TypeReference > Identifier[name="${type}"]):has(PublicKeyword,ProtectedKeyword,PrivateKeyword) > Identifier`;
-    const [result] = tsquery(node, query);
-    if (result) {
-        return result.text;
-    }
-    return null;
+    const result = tsquery(node, query);
+    return result.map((n) => n.text);
 }
-export function findClassPropertyDeclarationByType(node, type) {
+export function findClassPropertiesDeclarationByType(node, type) {
     const query = `PropertyDeclaration:has(TypeReference > Identifier[name="${type}"]) > Identifier`;
-    const [result] = tsquery(node, query);
-    if (result) {
-        return result.text;
-    }
-    return null;
+    const result = tsquery(node, query);
+    return result.map((n) => n.text);
+}
+export function findClassPropertiesGetterByType(node, type) {
+    const query = `GetAccessor:has(TypeReference > Identifier[name="${type}"]) > Identifier`;
+    const result = tsquery(node, query);
+    return result.map((n) => n.text);
 }
 export function findFunctionCallExpressions(node, fnName) {
     if (Array.isArray(fnName)) {
