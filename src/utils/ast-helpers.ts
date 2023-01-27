@@ -83,6 +83,14 @@ export function findFunctionCallExpressions(node: Node, fnName: string | string[
 	return tsquery<CallExpression>(node, query);
 }
 
+export function findSimpleCallExpressions(node: Node, fnName: string) {
+	if (Array.isArray(fnName)) {
+		fnName = fnName.join('|');
+	}
+	const query = `CallExpression:has(Identifier[name="${fnName}"])`;
+	return tsquery<CallExpression>(node, query);
+}
+
 export function findPropertyCallExpressions(node: Node, prop: string, fnName: string | string[]): CallExpression[] {
 	if (Array.isArray(fnName)) {
 		fnName = fnName.join('|');

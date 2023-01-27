@@ -7,6 +7,7 @@ import { PipeParser } from '../parsers/pipe.parser.js';
 import { DirectiveParser } from '../parsers/directive.parser.js';
 import { ServiceParser } from '../parsers/service.parser.js';
 import { MarkerParser } from '../parsers/marker.parser.js';
+import { FunctionParser } from '../parsers/function.parser.js';
 import { PostProcessorInterface } from '../post-processors/post-processor.interface.js';
 import { SortByKeyPostProcessor } from '../post-processors/sort-by-key.post-processor.js';
 import { KeyAsDefaultValuePostProcessor } from '../post-processors/key-as-default-value.post-processor.js';
@@ -79,6 +80,12 @@ export const cli: any = y // temporary any
 		describe: 'Remove obsolete strings after merge',
 		type: 'boolean'
 	})
+	.option('marker', {
+		alias: 'm',
+		describe: 'Name of a custom marker function for extracting strings',
+		type: 'string',
+		default: undefined
+	})
 	.option('key-as-default-value', {
 		alias: 'k',
 		describe: 'Use key as default value',
@@ -115,7 +122,12 @@ const extractTask = new ExtractTask(cli.input, cli.output, {
 });
 
 // Parsers
-const parsers: ParserInterface[] = [new PipeParser(), new DirectiveParser(), new ServiceParser(), new MarkerParser()];
+const parsers: ParserInterface[] = [new PipeParser(), new DirectiveParser(), new ServiceParser()];
+if (cli.marker) {
+	parsers.push(new FunctionParser(cli.marker))
+} else {
+	parsers.push(new MarkerParser())
+}
 extractTask.setParsers(parsers);
 
 // Post processors
