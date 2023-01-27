@@ -305,4 +305,19 @@ describe('ServiceParser', () => {
 		const keys = parser.extract(contents, componentFilename).keys();
 		expect(keys).to.deep.equal(['Back']);
 	});
+
+	it('should not extract chained function calls', () => {
+		const contents = `
+			@Component({ })
+			export class AppComponent {
+				public constructor(protected translate: TranslateService) { }
+				public test() {
+					const strings = ["a", "b", "c"];
+					return strings.map(string => this.translate.instant(string)).join(', ');
+				}
+			}
+		`;
+		const keys = parser.extract(contents, componentFilename).keys();
+		expect(keys).to.deep.equal([]);
+	});
 });
