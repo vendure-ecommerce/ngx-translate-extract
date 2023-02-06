@@ -1,6 +1,6 @@
 {
   "name": "@colsen1991/ngx-translate-extract",
-  "version": "8.0.6",
+  "version": "8.0.7",
   "description": "Extract strings from projects using ngx-translate",
   "author": "Kim Biesbjerg <kim@biesbjerg.com>",
   "maintainers": [
@@ -9,9 +9,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "npm run clean && tsc",
-    "watch": "npm run clean && tsc --watch",
-    "clean": "rimraf ./dist",
+    "build": "rimraf ./dist && tsc",
+    "watch": "rimraf ./dist && tsc --watch",
     "test": "ts-mocha -p tsconfig.spec.json tests/**/*.spec.ts",
     "lint": "eslint ./src/**/*.ts"
   },

@@ -109,6 +109,7 @@ Options:
                  multiple paths                                               [array] [required] [default: ["./"]]
   --output, -o   Paths where you would like to save extracted strings. You can use path expansion, glob
                  patterns and multiple paths                                                    [array] [required]
+  --marker, -m   Custom marker function name                                                              [string]
 
 Examples:
   ngx-translate-extract -i ./src-a/ -i ./src-b/ -o strings.json             Extract (ts, html) from multiple paths
