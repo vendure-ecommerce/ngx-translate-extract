@@ -11,33 +11,32 @@ Merges with existing strings if the output file already exists.
 
 This project was originally created by [Kim Biesbjerg](https://github.com/biesbjerg/ngx-translate-extract).
 Unfortunately he was unable to continue to maintain it so the Vendure team agreed to take over maintenance of a fork.
-This is a fork of the latter for experimentation and to cater to some personal modifications.
 
 ## Install
 
 Install the package in your project:
 
 ```bash
-npm install @colsen1991/ngx-translate-extract --save-dev
+npm install @vendure/ngx-translate-extract --save-dev
+# or
+yarn add @vendure/ngx-translate-extract --dev
 ```
 
 Choose the version corresponding to your Angular version:
 
 | Angular    | ngx-translate-extract                                                                      |
 |------------|--------------------------------------------------------------------------------------------|
-| 14         | 8.0.5+                                                                                     |
-| 13         | 8.0.5+                                                                                     |
+| 14         | 8.x.x+                                                                                     |
+| 13         | 8.x.x+                                                                                     |
 | 8.x – 12.x | [@biesbjerg/ngx-translate-extract](https://github.com/biesbjerg/ngx-translate-extract) 7.x |
 
 Add a script to your project's `package.json`:
 
 ```json
-...
 "scripts": {
   "i18n:init": "ngx-translate-extract --input ./src --output ./src/assets/i18n/template.json --key-as-default-value --replace --format json",
   "i18n:extract": "ngx-translate-extract --input ./src --output ./src/assets/i18n/{en,da,de,fi,nb,nl,sv}.json --clean --format json"
 }
-...
 ```
 
 You can now run `npm run i18n:extract` and it will extract strings from your project.
@@ -128,6 +127,7 @@ For instance, `gettext-parser:1.2.2` does not support HTML tags in translation k
 ## Credits
 
 - Original library, idea and code: [Kim Biesbjerg](https://github.com/biesbjerg/ngx-translate-extract) ❤️
-- Further updates and improvements were then made by [bartholomej](https://github.com/bartholomej) ❤️
-- Further updates and improvements were then made by [michaelbromley](https://github.com/michaelbromley)/[vendure-ecommerce](https://github.com/vendure-ecommerce) ❤️
-- Further updates and improvements were made by [P4's](https://github.com/P4) ❤️
+- Further updates and improvements by [bartholomej](https://github.com/bartholomej) ❤️
+- Further updates and improvements by [P4](https://github.com/P4) ❤️
+- Further updates and improvements by [colsen1991](https://github.com/colsen1991) ❤️
+- Further updates and improvements by [tmijieux](https://github.com/tmijieux) ❤️
