@@ -1,5 +1,6 @@
 # Changelog
 
+
 ## v8.0.6 (2023-03-TODO)
 
 - Accommodate marker pipe and directive
@@ -25,6 +26,7 @@
 - fix: Find uses of translate pipe in pipe arguments [#2](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/2)
 
   Fixes the following:
+
 
   ```angular2html
   {{ 'value' | testPipe: ('test1' | translate) }} // finds nothing, misses 'test1'
