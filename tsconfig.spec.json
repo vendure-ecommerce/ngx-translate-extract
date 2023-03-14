@@ -10,7 +10,10 @@
         "allowSyntheticDefaultImports": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
-        "noImplicitUseStrict": true,
-    }, 
-    "include": ["tests/**/*.ts", "src/**/*.ts"]
+        "noImplicitUseStrict": true
+    },
+    "include": [
+        "tests/**/*.ts",
+        "src/**/*.ts"
+    ]
 }

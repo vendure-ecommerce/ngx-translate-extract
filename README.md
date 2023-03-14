@@ -9,23 +9,24 @@ Merges with existing strings if the output file already exists.
 
 ## History
 
-This project was originally created by [Kim Biesbjerg](https://github.com/biesbjerg/ngx-translate-extract). Unfortunately he was unable to continue to maintain it so the Vendure team agreed to take over maintenance of a fork.
+This project was originally created by [Kim Biesbjerg](https://github.com/biesbjerg/ngx-translate-extract).
+Unfortunately he was unable to continue to maintain it so the Vendure team agreed to take over maintenance of a fork.
+This is a fork of the latter for experimentation and to cater to some personal modifications.
 
 ## Install
 
 Install the package in your project:
 
 ```bash
-npm install @vendure/ngx-translate-extract --save-dev
-# yarn add @vendure/ngx-translate-extract --dev
+npm install @colsen1991/ngx-translate-extract --save-dev
 ```
 
 Choose the version corresponding to your Angular version:
 
 | Angular    | ngx-translate-extract                                                                      |
-| ---------- | ------------------------------------------------------------------------------------------ |
-| 14         | 8.x+                                                                                       |
-| 13         | 8.x+                                                                                       |
+|------------|--------------------------------------------------------------------------------------------|
+| 14         | 8.0.5+                                                                                     |
+| 13         | 8.0.5+                                                                                     |
 | 8.x – 12.x | [@biesbjerg/ngx-translate-extract](https://github.com/biesbjerg/ngx-translate-extract) 7.x |
 
 Add a script to your project's `package.json`:
@@ -73,29 +74,15 @@ ngx-translate-extract --input ./src --output ./src/i18n/en.json --format-indenta
 
 ### Marker function
 
-If you want to extract strings that are not passed directly to `TranslateService`'s `get()`/`instant()`/`stream()` methods, you can wrap them in a marker function to let `ngx-translate-extract` know you want to extract them.
-
-Install marker function:
+If you want to extract strings that are not passed directly to `NgxTranslate.TranslateService`'s
+`get()`/`instant()`/`stream()` methods, or its `translate` pipe or directive, you can wrap them
+in a marker function/pipe/directive to let `ngx-translate-extract` know you want to extract them.
 
 ```bash
-npm install @biesbjerg/ngx-translate-extract-marker
+npm install @colsen1991/ngx-translate-extract-marker
 ```
 
-```ts
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-
-marker('Extract me');
-```
-
-You can alias the marker function if needed:
-
-```ts
-import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
-
-_('Extract me');
-```
-
-_Note: `ngx-translate-extract` will automatically detect the import name_
+See [@colsen1991/ngx-translate-extract-marker](https://github.com/colsen1991/ngx-translate-extract-marker/blob/master/README.md) documentation for more information.
 
 ### Commandline arguments
 
@@ -104,42 +91,43 @@ Usage:
 ngx-translate-extract [options]
 
 Output
-  --format, -f                Format    [string] [choices: "json", "namespaced-json", "pot"] [default: "json"]
-  --format-indentation, --fi  Format indentation (JSON/Namedspaced JSON)                [string] [default: "	"]
-  --sort, -s                  Sort strings in alphabetical order                                     [boolean]
-  --clean, -c                 Remove obsolete strings after merge                                    [boolean]
-  --replace, -r               Replace the contents of output file if it exists (Merges by default)   [boolean]
+  --format, -f                Format        [string] [choices: "json", "namespaced-json", "pot"] [default: "json"]
+  --format-indentation, --fi  Format indentation (JSON/Namedspaced JSON)                  [string] [default: "\t"]
+  --sort, -s                  Sort strings in alphabetical order                                         [boolean]
+  --clean, -c                 Remove obsolete strings after merge                                        [boolean]
+  --replace, -r               Replace the contents of output file if it exists (Merges by default)       [boolean]
 
 Extracted key value (defaults to empty string)
-  --key-as-default-value, -k     Use key as default value                                            [boolean]
-  --null-as-default-value, -n    Use null as default value                                           [boolean]
-  --string-as-default-value, -d  Use string as default value                                          [string]
+  --key-as-default-value, -k     Use key as default value                                                [boolean]
+  --null-as-default-value, -n    Use null as default value                                               [boolean]
+  --string-as-default-value, -d  Use string as default value                                              [string]
 
 Options:
-  --version, -v  Show version number                                                                 [boolean]
-  --help, -h     Show help                                                                           [boolean]
+  --version, -v  Show version number                                                                     [boolean]
+  --help, -h     Show help                                                                               [boolean]
   --input, -i    Paths you would like to extract strings from. You can use path expansion, glob patterns and
-                 multiple paths        [array] [required] [default: ["/Users/kim/apps/ngx-translate-extract"]]
+                 multiple paths                                               [array] [required] [default: ["./"]]
   --output, -o   Paths where you would like to save extracted strings. You can use path expansion, glob
-                 patterns and multiple paths                                                [array] [required]
+                 patterns and multiple paths                                                    [array] [required]
+  --marker, -m   Custom marker function name                                                              [string]
 
 Examples:
-  ngx-translate-extract -i ./src-a/ -i ./src-b/ -o strings.json           Extract (ts, html) from multiple paths
-  ngx-translate-extract -i './{src-a,src-b}/' -o strings.json             Extract (ts, html) from multiple paths using brace
-                                                           expansion
-  ngx-translate-extract -i ./src/ -o ./i18n/da.json -o ./i18n/en.json     Extract (ts, html) and save to da.json and en.json
-  ngx-translate-extract -i ./src/ -o './i18n/{en,da}.json'                Extract (ts, html) and save to da.json and en.json
-                                                           using brace expansion
-  ngx-translate-extract -i './src/**/*.{ts,tsx,html}' -o strings.json     Extract from ts, tsx and html
-  ngx-translate-extract -i './src/**/!(*.spec).{ts,html}' -o              Extract from ts, html, excluding files with ".spec"
-  strings.json
+  ngx-translate-extract -i ./src-a/ -i ./src-b/ -o strings.json             Extract (ts, html) from multiple paths
+  ngx-translate-extract -i './{src-a,src-b}/' -o strings.json               Extract (ts, html) from multiple paths using brace expansion
+  ngx-translate-extract -i ./src/ -o ./i18n/da.json -o ./i18n/en.json       Extract (ts, html) and save to da.json and en.json
+  ngx-translate-extract -i ./src/ -o './i18n/{en,da}.json'                  Extract (ts, html) and save to da.json and en.json using brace expansion
+  ngx-translate-extract -i './src/**/*.{ts,tsx,html}' -o strings.json       Extract from ts, tsx and html
+  ngx-translate-extract -i './src/**/!(*.spec).{ts,html}' -o strings.json   Extract from ts, html, excluding files with ".spec"
 ```
 
 ## Note for GetText users
 
-Please pay attention of which version of `gettext-parser` you actually use in your project. For instance, `gettext-parser:1.2.2` does not support HTML tags in translation keys.
+Please pay attention of which version of `gettext-parser` you actually use in your project. 
+For instance, `gettext-parser:1.2.2` does not support HTML tags in translation keys.
 
 ## Credits
 
 - Original library, idea and code: [Kim Biesbjerg](https://github.com/biesbjerg/ngx-translate-extract) ❤️
-- Further updates and improvements were then made by [bartholomej](https://github.com/bartholomej)
+- Further updates and improvements were then made by [bartholomej](https://github.com/bartholomej) ❤️
+- Further updates and improvements were then made by [michaelbromley](https://github.com/michaelbromley)/[vendure-ecommerce](https://github.com/vendure-ecommerce) ❤️
+- Further updates and improvements were made by [P4's](https://github.com/P4) ❤️

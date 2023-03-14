@@ -1,6 +1,5 @@
-// @ts-ignore
 import yargs from 'yargs';
-import { red, green } from 'colorette';
+import { green, red } from 'colorette';
 
 import { ExtractTask } from './tasks/extract.task.js';
 import { ParserInterface } from '../parsers/parser.interface.js';
@@ -8,6 +7,7 @@ import { PipeParser } from '../parsers/pipe.parser.js';
 import { DirectiveParser } from '../parsers/directive.parser.js';
 import { ServiceParser } from '../parsers/service.parser.js';
 import { MarkerParser } from '../parsers/marker.parser.js';
+import { FunctionParser } from '../parsers/function.parser.js';
 import { PostProcessorInterface } from '../post-processors/post-processor.interface.js';
 import { SortByKeyPostProcessor } from '../post-processors/sort-by-key.post-processor.js';
 import { KeyAsDefaultValuePostProcessor } from '../post-processors/key-as-default-value.post-processor.js';
@@ -17,7 +17,6 @@ import { PurgeObsoleteKeysPostProcessor } from '../post-processors/purge-obsolet
 import { CompilerInterface } from '../compilers/compiler.interface.js';
 import { CompilerFactory } from '../compilers/compiler.factory.js';
 import { normalizePaths } from '../utils/fs-helpers.js';
-// import { donateMessage } from '../utils/donate.js';
 
 // First parsing pass to be able to access pattern argument for use input/output arguments
 const y = yargs().option('patterns', {
@@ -30,8 +29,7 @@ const y = yargs().option('patterns', {
 
 const parsed = y.parse() as any; // temporary any
 
-// temporary any
-export const cli: any = y
+export const cli: any = y // temporary any
 	.usage('Extract strings from files for translation.\nUsage: $0 [options]')
 	.version(process.env.npm_package_version)
 	.alias('version', 'v')
@@ -45,10 +43,7 @@ export const cli: any = y
 		normalize: true,
 		required: true
 	})
-	.coerce('input', (input: string[]) => {
-		const paths = normalizePaths(input, parsed.patterns);
-		return paths;
-	})
+	.coerce('input', (input: string[]) => normalizePaths(input, parsed.patterns))
 	.option('output', {
 		alias: 'o',
 		describe: 'Paths where you would like to save extracted strings. You can use path expansion, glob patterns and multiple paths',
@@ -56,10 +51,7 @@ export const cli: any = y
 		normalize: true,
 		required: true
 	})
-	.coerce('output', (output: string[]) => {
-		const paths = normalizePaths(output, parsed.patterns);
-		return paths;
-	})
+	.coerce('output', (output: string[]) => normalizePaths(output, parsed.patterns))
 	.option('format', {
 		alias: 'f',
 		describe: 'Format',
@@ -88,6 +80,12 @@ export const cli: any = y
 		describe: 'Remove obsolete strings after merge',
 		type: 'boolean'
 	})
+	.option('marker', {
+		alias: 'm',
+		describe: 'Name of a custom marker function for extracting strings',
+		type: 'string',
+		default: undefined
+	})
 	.option('key-as-default-value', {
 		alias: 'k',
 		describe: 'Use key as default value',
@@ -109,12 +107,12 @@ export const cli: any = y
 	.group(['format', 'format-indentation', 'sort', 'clean', 'replace'], 'Output')
 	.group(['key-as-default-value', 'null-as-default-value', 'string-as-default-value'], 'Extracted key value (defaults to empty string)')
 	.conflicts('key-as-default-value', 'null-as-default-value')
-	.example(`$0 -i ./src-a/ -i ./src-b/ -o strings.json`, 'Extract (ts, html) from multiple paths')
-	.example(`$0 -i './{src-a,src-b}/' -o strings.json`, 'Extract (ts, html) from multiple paths using brace expansion')
-	.example(`$0 -i ./src/ -o ./i18n/da.json -o ./i18n/en.json`, 'Extract (ts, html) and save to da.json and en.json')
-	.example(`$0 -i ./src/ -o './i18n/{en,da}.json'`, 'Extract (ts, html) and save to da.json and en.json using brace expansion')
-	.example(`$0 -i './src/**/*.{ts,tsx,html}' -o strings.json`, 'Extract from ts, tsx and html')
-	.example(`$0 -i './src/**/!(*.spec).{ts,html}' -o strings.json`, 'Extract from ts, html, excluding files with ".spec" in filename')
+	.example('$0 -i ./src-a/ -i ./src-b/ -o strings.json', 'Extract (ts, html) from multiple paths')
+	.example('$0 -i \'./{src-a,src-b}/\' -o strings.json', 'Extract (ts, html) from multiple paths using brace expansion')
+	.example('$0 -i ./src/ -o ./i18n/da.json -o ./i18n/en.json', 'Extract (ts, html) and save to da.json and en.json')
+	.example('$0 -i ./src/ -o \'./i18n/{en,da}.json\'', 'Extract (ts, html) and save to da.json and en.json using brace expansion')
+	.example('$0 -i \'./src/**/*.{ts,tsx,html}\' -o strings.json', 'Extract from ts, tsx and html')
+	.example('$0 -i \'./src/**/!(*.spec).{ts,html}\' -o strings.json', 'Extract from ts, html, excluding files with ".spec" in filename')
 	.wrap(110)
 	.exitProcess(true)
 	.parse(process.argv);
@@ -124,7 +122,12 @@ const extractTask = new ExtractTask(cli.input, cli.output, {
 });
 
 // Parsers
-const parsers: ParserInterface[] = [new PipeParser(), new DirectiveParser(), new ServiceParser(), new MarkerParser()];
+const parsers: ParserInterface[] = [new PipeParser(), new DirectiveParser(), new ServiceParser()];
+if (cli.marker) {
+	parsers.push(new FunctionParser(cli.marker))
+} else {
+	parsers.push(new MarkerParser())
+}
 extractTask.setParsers(parsers);
 
 // Post processors
@@ -155,7 +158,6 @@ extractTask.setCompiler(compiler);
 try {
 	extractTask.execute();
 	console.log(green('\nDone.\n'));
-	// console.log(donateMessage);
 	process.exit(0);
 } catch (e) {
 	console.log(red(`\nAn error occurred: ${e}\n`));

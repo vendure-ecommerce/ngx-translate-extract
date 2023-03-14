@@ -23,15 +23,13 @@ export class PoCompiler implements CompilerInterface {
 				'content-transfer-encoding': '8bit'
 			},
 			translations: {
-				[this.domain]: Object.keys(collection.values).reduce((translations, key) => {
-					return {
-						...translations,
-						[key]: {
-							msgid: key,
-							msgstr: collection.get(key)
-						}
-					};
-				}, {} as any)
+				[this.domain]: Object.keys(collection.values).reduce((translations, key) => ({
+					...translations,
+					[key]: {
+						msgid: key,
+						msgstr: collection.get(key)
+					}
+				}), {} as any)
 			}
 		};
 
@@ -49,12 +47,10 @@ export class PoCompiler implements CompilerInterface {
 
 		const values = Object.keys(parsedPo.translations[this.domain])
 			.filter((key) => key.length > 0)
-			.reduce((result, key) => {
-				return {
-					...result,
-					[key]: parsedPo.translations[this.domain][key].msgstr.pop()
-				};
-			}, {} as TranslationType);
+			.reduce((result, key) => ({
+				...result,
+				[key]: parsedPo.translations[this.domain][key].msgstr.pop()
+			}), {} as TranslationType);
 
 		return new TranslationCollection(values);
 	}
