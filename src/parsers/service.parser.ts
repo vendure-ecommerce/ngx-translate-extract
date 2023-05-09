@@ -39,7 +39,7 @@ export class ServiceParser implements ParserInterface {
 					return;
 				}
 				const strings = getStringsFromExpression(firstArg);
-				collection = collection.addKeys(strings);
+				collection = collection.addKeys(strings, filePath);
 			});
 		});
 		return collection;

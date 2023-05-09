@@ -13,22 +13,22 @@ describe('PurgeObsoleteKeysPostProcessor', () => {
 
 	it('should purge obsolete keys', () => {
 		const draft = new TranslationCollection({
-			'I am completely new': '',
-			'I already exist': '',
-			'I already exist but was not present in extract': ''
+			'I am completely new': {value: '', sourceFiles: []},
+			'I already exist': {value: '', sourceFiles: []},
+			'I already exist but was not present in extract': {value: '', sourceFiles: []}
 		});
 		const extracted = new TranslationCollection({
-			'I am completely new': '',
-			'I already exist': ''
+			'I am completely new': {value: '', sourceFiles: []},
+			'I already exist': {value: '', sourceFiles: []}
 		});
 		const existing = new TranslationCollection({
-			'I already exist': '',
-			'I already exist but was not present in extract': ''
+			'I already exist': {value: '', sourceFiles: []},
+			'I already exist but was not present in extract': {value: '', sourceFiles: []}
 		});
 
 		expect(postProcessor.process(draft, extracted, existing).values).to.deep.equal({
-			'I am completely new': '',
-			'I already exist': ''
+			'I am completely new': {value: '', sourceFiles: []},
+			'I already exist': {value: '', sourceFiles: []}
 		});
 	});
 });

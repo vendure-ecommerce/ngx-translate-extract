@@ -1,5 +1,5 @@
 import { CompilerInterface } from './compiler.interface.js';
-import { TranslationCollection, TranslationType } from '../utils/translation.collection.js';
+import {TranslationCollection, TranslationInterface, TranslationType} from '../utils/translation.collection.js';
 
 import pkg from 'gettext-parser';
 const { po } = pkg;
@@ -23,13 +23,21 @@ export class PoCompiler implements CompilerInterface {
 				'content-transfer-encoding': '8bit'
 			},
 			translations: {
-				[this.domain]: Object.keys(collection.values).reduce((translations, key) => ({
-					...translations,
-					[key]: {
-						msgid: key,
-						msgstr: collection.get(key)
-					}
-				}), {} as any)
+				[this.domain]: Object.keys(collection.values)
+					.reduce(
+						(translations, key) => {
+							const entry: TranslationInterface = collection.get(key);
+							return {
+								...translations,
+								[key]: {
+									msgid: key,
+									msgstr: entry.value,
+									comments: {reference: entry.sourceFiles?.join('\n')}
+								}
+							};
+						},
+						{} as any
+					)
 			}
 		};
 
@@ -49,7 +57,7 @@ export class PoCompiler implements CompilerInterface {
 			.filter((key) => key.length > 0)
 			.reduce((result, key) => ({
 				...result,
-				[key]: parsedPo.translations[this.domain][key].msgstr.pop()
+				[key]: {value: parsedPo.translations[this.domain][key].msgstr.pop(), sourceFiles: parsedPo.translations[this.domain][key].comments.reference.split('\n')}
 			}), {} as TranslationType);
 
 		return new TranslationCollection(values);

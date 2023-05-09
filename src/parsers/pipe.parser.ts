@@ -30,7 +30,7 @@ export class PipeParser implements ParserInterface {
 		const pipes: BindingPipe[] = nodes.map((node) => this.findPipesInNode(node)).flat();
 		pipes.forEach((pipe) => {
 			this.parseTranslationKeysFromPipe(pipe).forEach((key: string) => {
-				collection = collection.add(key);
+				collection = collection.add(key, '', filePath);
 			});
 		});
 		return collection;

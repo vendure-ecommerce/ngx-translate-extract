@@ -1,5 +1,5 @@
 import { CompilerInterface } from './compiler.interface.js';
-import { TranslationCollection } from '../utils/translation.collection.js';
+import {TranslationCollection, TranslationInterface} from '../utils/translation.collection.js';
 import { stripBOM } from '../utils/utils.js';
 
 import pkg from 'flat';
@@ -17,7 +17,7 @@ export class JsonCompiler implements CompilerInterface {
 	}
 
 	public compile(collection: TranslationCollection): string {
-		return JSON.stringify(collection.values, null, this.indentation);
+		return JSON.stringify(collection.toKeyValueObject(), null, this.indentation);
 	}
 
 	public parse(contents: string): TranslationCollection {
