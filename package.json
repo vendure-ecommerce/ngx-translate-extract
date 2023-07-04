@@ -20,7 +20,8 @@
     "glob": "^7.2.0",
     "path": "^0.12.7",
     "terminal-link": "^3.0.0",
-    "yargs": "^17.5.1"
+    "yargs": "^17.5.1",
+    "braces": "^3.0.2"
   },
   "devDependencies": {
     "@types/braces": "^3.0.1",
@@ -34,7 +35,6 @@
     "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/eslint-plugin-tslint": "^5.48.2",
     "@typescript-eslint/parser": "^5.48.2",
-    "braces": "^3.0.2",
     "chai": "^4.3.6",
     "cross-env": "^7.0.3",
     "eslint": "^8.32.0",
