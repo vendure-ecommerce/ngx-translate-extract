@@ -10,6 +10,20 @@ describe('NamespacedJsonCompiler', () => {
 		compiler = new NamespacedJsonCompiler();
 	});
 
+	it('should parse to a translation interface', () => {
+		const contents = `
+			{
+				"key": "value",
+				"secondKey": ""
+			}
+		`;
+		const collection: TranslationCollection = compiler.parse(contents);
+		expect(collection.values).to.deep.equal({
+			'key': {value: 'value', sourceFiles: []},
+			'secondKey': {value: '', sourceFiles: []}
+		});
+	});
+
 	it('should flatten keys on parse', () => {
 		const contents = `
 			{
@@ -23,8 +37,8 @@ describe('NamespacedJsonCompiler', () => {
 		`;
 		const collection: TranslationCollection = compiler.parse(contents);
 		expect(collection.values).to.deep.equal({
-			'NAMESPACE.KEY.FIRST_KEY': '',
-			'NAMESPACE.KEY.SECOND_KEY': 'VALUE'
+			'NAMESPACE.KEY.FIRST_KEY': {value: '', sourceFiles: []},
+			'NAMESPACE.KEY.SECOND_KEY': {value: 'VALUE', sourceFiles: []}
 		});
 	});
 

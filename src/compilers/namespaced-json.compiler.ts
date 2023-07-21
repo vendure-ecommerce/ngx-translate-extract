@@ -1,5 +1,5 @@
 import { CompilerInterface } from './compiler.interface.js';
-import { TranslationCollection } from '../utils/translation.collection.js';
+import {TranslationCollection, TranslationInterface, TranslationType} from '../utils/translation.collection.js';
 import { stripBOM } from '../utils/utils.js';
 
 import pkg from 'flat';
@@ -25,7 +25,9 @@ export class NamespacedJsonCompiler implements CompilerInterface {
 	}
 
 	public parse(contents: string): TranslationCollection {
-		const values: {} = flatten(JSON.parse(stripBOM(contents)));
-		return new TranslationCollection(values);
+		const values: Record<string, string> = flatten(JSON.parse(stripBOM(contents)));
+		const newValues: TranslationType = {};
+		Object.entries(values).forEach(([key, value]: [string, string]) => newValues[key] = <TranslationInterface>{value: value, sourceFiles: []});
+		return new TranslationCollection(newValues);
 	}
 }

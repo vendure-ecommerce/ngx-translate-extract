@@ -1,5 +1,5 @@
 import { CompilerInterface } from './compiler.interface.js';
-import {TranslationCollection, TranslationInterface} from '../utils/translation.collection.js';
+import {TranslationCollection, TranslationInterface, TranslationType} from '../utils/translation.collection.js';
 import { stripBOM } from '../utils/utils.js';
 
 import pkg from 'flat';
@@ -25,7 +25,9 @@ export class JsonCompiler implements CompilerInterface {
 		if (this.isNamespacedJsonFormat(values)) {
 			values = flatten(values);
 		}
-		return new TranslationCollection(values);
+		const newValues: TranslationType = {};
+		Object.entries(values).forEach(([key, value]: [string, string]) => newValues[key] = <TranslationInterface>{value: value, sourceFiles: []});
+		return new TranslationCollection(newValues);
 	}
 
 	protected isNamespacedJsonFormat(values: any): boolean {

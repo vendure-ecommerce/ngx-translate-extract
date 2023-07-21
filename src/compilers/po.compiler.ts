@@ -57,7 +57,7 @@ export class PoCompiler implements CompilerInterface {
 			.filter((key) => key.length > 0)
 			.reduce((result, key) => ({
 				...result,
-				[key]: {value: parsedPo.translations[this.domain][key].msgstr.pop(), sourceFiles: parsedPo.translations[this.domain][key].comments.reference.split('\n')}
+				[key]: {value: parsedPo.translations[this.domain][key].msgstr.pop(), sourceFiles: parsedPo.translations[this.domain][key].comments?.reference?.split('\n') || []}
 			}), {} as TranslationType);
 
 		return new TranslationCollection(values);

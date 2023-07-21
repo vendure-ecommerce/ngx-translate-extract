@@ -17,8 +17,8 @@ export class FunctionParser implements ParserInterface {
 		const callExpressions = findSimpleCallExpressions(sourceFile, this.fnName);
 		callExpressions.forEach((callExpression) => {
 			if (!isIdentifier(callExpression.expression)
-			    || callExpression.expression.escapedText != this.fnName) {
-				return
+			    || callExpression.expression.escapedText !== this.fnName) {
+				return;
 			}
 
 			const [firstArg] = callExpression.arguments;
