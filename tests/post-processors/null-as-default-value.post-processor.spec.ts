@@ -16,7 +16,7 @@ describe('NullAsDefaultValuePostProcessor', () => {
 		const extracted = new TranslationCollection({ 'String A': {value: '', sourceFiles: []} });
 		const existing = new TranslationCollection();
 		expect(processor.process(draft, extracted, existing).values).to.deep.equal({
-			'String A': null
+			'String A': {value: null, sourceFiles: []}
 		});
 	});
 
