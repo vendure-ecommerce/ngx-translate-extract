@@ -1,5 +1,9 @@
 # Changelog
 
+## v8.0.8 (2023-09-01)
+
+- Bumped `@phenomnomnominal/tsquery` to `^6.1.3` due to typescript peer dependency being incompatible with Angular 16+
+
 ## v8.0.7 (2023-01-19)
 
 - Re-added --marker/-m option to CLI thanks to [tmijieux's](https://github.com/tmijieux) [PR](https://github.com/colsen1991/ngx-translate-extract/pull/1)
