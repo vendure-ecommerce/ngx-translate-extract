@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.0.0 (2023-09-01)
+
+- Support for Angular 16 (Self-Closing-Tags)
+
 ## v8.0.8 (2023-09-01)
 
 - Bumped `@phenomnomnominal/tsquery` to `^6.1.3` due to typescript peer dependency being incompatible with Angular 16+
