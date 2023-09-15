@@ -14,14 +14,15 @@
   "dependencies": {
     "@phenomnomnominal/tsquery": "^5.0.1",
     "boxen": "^6.2.1",
+    "braces": "^3.0.2",
     "colorette": "^2.0.16",
     "flat": "^5.0.2",
     "gettext-parser": "^4.2.0",
     "glob": "^7.2.0",
     "path": "^0.12.7",
     "terminal-link": "^3.0.0",
-    "yargs": "^17.5.1",
-    "braces": "^3.0.2"
+    "tsconfig": "^7.0.0",
+    "yargs": "^17.5.1"
   },
   "devDependencies": {
     "@types/braces": "^3.0.1",

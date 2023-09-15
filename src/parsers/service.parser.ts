@@ -62,7 +62,7 @@ export class ServiceParser implements ParserInterface {
 	}
 
 	protected findPropertyCallExpressions(classDeclaration: ClassDeclaration, sourceFile: SourceFile): CallExpression[] {
-		let propNames = [
+		const propNames = [
 			...findClassPropertiesByType(classDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE),
 			...this.findParentClassProperties(classDeclaration, sourceFile)
 		];
@@ -124,7 +124,7 @@ export class ServiceParser implements ParserInterface {
 			const superClassAst = tsquery.ast(superClassFileContent, file);
 			const superClassDeclarations = findClassDeclarations(superClassAst, superClassName);
 			const superClassPropertyNames = superClassDeclarations
-				.flatMap((superClassDeclaration) => findClassPropertiesByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE))
+				.flatMap((superClassDeclaration) => findClassPropertiesByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE));
 			if (superClassPropertyNames.length > 0) {
 				ServiceParser.propertyMap.set(file, superClassPropertyNames);
 				allSuperClassPropertyNames.push(...superClassPropertyNames);
