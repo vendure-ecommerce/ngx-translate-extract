@@ -58,6 +58,7 @@ export function findClassPropertiesByType(node: ClassDeclaration, type: string):
 	return [
 		...findClassPropertiesConstructorParameterByType(node, type),
 		...findClassPropertiesDeclarationByType(node, type),
+		...findClassPropertiesDeclarationByInject(node, type),
 		...findClassPropertiesGetterByType(node, type)
 	];
 }
@@ -93,6 +94,12 @@ export function findClassPropertiesConstructorParameterByType(node: ClassDeclara
 
 export function findClassPropertiesDeclarationByType(node: ClassDeclaration, type: string): string[] {
 	const query = `PropertyDeclaration:has(TypeReference > Identifier[name="${type}"]) > Identifier`;
+	const result = tsquery<Identifier>(node, query);
+	return result.map((n) => n.text);
+}
+
+export function findClassPropertiesDeclarationByInject(node: ClassDeclaration, type: string): string[] {
+	const query = `PropertyDeclaration:has(CallExpression > Identifier[name="inject"]):has(CallExpression > Identifier[name="${type}"]) > Identifier`;
 	const result = tsquery<Identifier>(node, query);
 	return result.map((n) => n.text);
 }

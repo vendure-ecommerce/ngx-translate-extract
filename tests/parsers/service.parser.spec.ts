@@ -295,6 +295,20 @@ describe('ServiceParser', () => {
 		expect(keys).to.deep.equal(['Hello World']);
 	});
 
+	it('should extract strings when TranslateService is injected using the inject function ', () => {
+		const contents = `
+			export class MyComponent {
+				private translateService = inject(TranslateService);
+
+				public test() {
+					this.translateService.instant('Hello World');
+				}
+			}
+		`;
+		const keys = parser.extract(contents, componentFilename)?.keys();
+		expect(keys).to.deep.equal(['Hello World']);
+	});
+
 	it('should extract strings passed to TranslateServices methods only', () => {
 		const contents = `
 			export class AppComponent implements OnInit {
