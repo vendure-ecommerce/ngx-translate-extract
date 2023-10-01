@@ -110,4 +110,22 @@ export class TranslationCollection {
 		Object.entries(this.values).map(([key, value]: [string, TranslationInterface]) => jsonTranslations[key] = value.value);
 		return jsonTranslations;
 	}
+
+	public stripKeyPrefix(prefix: string): TranslationCollection {
+		const cleanedValues: TranslationType = {};
+		const lowercasePrefix = prefix.toLowerCase();
+		for (const key in this.values) {
+			if (this.has(key)) {
+				const lowercaseKey = key.toLowerCase();
+				if (lowercaseKey.startsWith(lowercasePrefix)) {
+					const cleanedKey = key.substring(prefix.length);
+					cleanedValues[cleanedKey] = this.values[key];
+				} else {
+					cleanedValues[key] = this.values[key];
+				}
+			}
+		}
+
+		return new TranslationCollection(cleanedValues);
+	}
 }

@@ -21,3 +21,4 @@ export * from './post-processors/post-processor.interface.js';
 export * from './post-processors/key-as-default-value.post-processor.js';
 export * from './post-processors/purge-obsolete-keys.post-processor.js';
 export * from './post-processors/sort-by-key.post-processor.js';
+export * from './post-processors/strip-prefix.post-processor.js';

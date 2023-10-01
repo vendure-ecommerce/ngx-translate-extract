@@ -14,6 +14,7 @@ import { KeyAsDefaultValuePostProcessor } from '../post-processors/key-as-defaul
 import { NullAsDefaultValuePostProcessor } from '../post-processors/null-as-default-value.post-processor.js';
 import { StringAsDefaultValuePostProcessor } from '../post-processors/string-as-default-value.post-processor.js';
 import { PurgeObsoleteKeysPostProcessor } from '../post-processors/purge-obsolete-keys.post-processor.js';
+import { StripPrefixPostProcessor } from '../post-processors/strip-prefix.post-processor.js';
 import { CompilerInterface } from '../compilers/compiler.interface.js';
 import { CompilerFactory } from '../compilers/compiler.factory.js';
 import { normalizePaths } from '../utils/fs-helpers.js';
@@ -104,15 +105,20 @@ export const cli: any = y // temporary any
 		type: 'string',
 		conflicts: ['null-as-default-value', 'key-as-default-value']
 	})
+	.option('strip-prefix', {
+		alias: 'sp',
+		describe: 'Strip a prefix from the extracted key',
+		type: 'string'
+	})
 	.group(['format', 'format-indentation', 'sort', 'clean', 'replace'], 'Output')
 	.group(['key-as-default-value', 'null-as-default-value', 'string-as-default-value'], 'Extracted key value (defaults to empty string)')
 	.conflicts('key-as-default-value', 'null-as-default-value')
 	.example('$0 -i ./src-a/ -i ./src-b/ -o strings.json', 'Extract (ts, html) from multiple paths')
-	.example('$0 -i \'./{src-a,src-b}/\' -o strings.json', 'Extract (ts, html) from multiple paths using brace expansion')
+	.example("$0 -i './{src-a,src-b}/' -o strings.json", 'Extract (ts, html) from multiple paths using brace expansion')
 	.example('$0 -i ./src/ -o ./i18n/da.json -o ./i18n/en.json', 'Extract (ts, html) and save to da.json and en.json')
-	.example('$0 -i ./src/ -o \'./i18n/{en,da}.json\'', 'Extract (ts, html) and save to da.json and en.json using brace expansion')
-	.example('$0 -i \'./src/**/*.{ts,tsx,html}\' -o strings.json', 'Extract from ts, tsx and html')
-	.example('$0 -i \'./src/**/!(*.spec).{ts,html}\' -o strings.json', 'Extract from ts, html, excluding files with ".spec" in filename')
+	.example("$0 -i ./src/ -o './i18n/{en,da}.json'", 'Extract (ts, html) and save to da.json and en.json using brace expansion')
+	.example("$0 -i './src/**/*.{ts,tsx,html}' -o strings.json", 'Extract from ts, tsx and html')
+	.example("$0 -i './src/**/!(*.spec).{ts,html}' -o strings.json", 'Extract from ts, html, excluding files with ".spec" in filename')
 	.wrap(110)
 	.exitProcess(true)
 	.parse(process.argv);
@@ -141,6 +147,10 @@ if (cli.keyAsDefaultValue) {
 	postProcessors.push(new NullAsDefaultValuePostProcessor());
 } else if (cli.stringAsDefaultValue) {
 	postProcessors.push(new StringAsDefaultValuePostProcessor({ defaultValue: cli.stringAsDefaultValue as string }));
+}
+
+if (cli.stripPrefix) {
+	postProcessors.push(new StripPrefixPostProcessor({ prefix: cli.stripPrefix as string }));
 }
 
 if (cli.sort) {
