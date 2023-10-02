@@ -25,7 +25,7 @@ yarn add @vendure/ngx-translate-extract --dev
 Choose the version corresponding to your Angular version:
 
 | Angular    | ngx-translate-extract                                                                      |
-|------------|--------------------------------------------------------------------------------------------|
+| ---------- | ------------------------------------------------------------------------------------------ |
 | 14         | 8.x.x+                                                                                     |
 | 13         | 8.x.x+                                                                                     |
 | 8.x – 12.x | [@biesbjerg/ngx-translate-extract](https://github.com/biesbjerg/ngx-translate-extract) 7.x |
@@ -61,6 +61,14 @@ ngx-translate-extract --input ./src-a ./src-b --output ./src/assets/i18n/strings
 ngx-translate-extract --input ./src --output ./src/i18n/{da,en}.json
 ```
 
+**Strip prefix from the generated json keys**
+
+Useful when loading multiple translation files in the same application and prefixing them automatically
+
+```bash
+ngx-translate-extract --input ./src --output ./src/i18n/{da,en}.json --strip-prefix 'PREFIX.'
+```
+
 ### JSON indentation
 
 Tabs are used by default for indentation when saving extracted strings in json formats:
@@ -85,7 +93,7 @@ See [@colsen1991/ngx-translate-extract-marker](https://github.com/colsen1991/ngx
 
 ### Commandline arguments
 
-```
+```bash
 Usage:
 ngx-translate-extract [options]
 
@@ -95,6 +103,7 @@ Output
   --sort, -s                  Sort strings in alphabetical order                                         [boolean]
   --clean, -c                 Remove obsolete strings after merge                                        [boolean]
   --replace, -r               Replace the contents of output file if it exists (Merges by default)       [boolean]
+  --strip-prefix, -sp         Strip prefix from key                                                       [string]
 
 Extracted key value (defaults to empty string)
   --key-as-default-value, -k     Use key as default value                                                [boolean]
@@ -117,17 +126,18 @@ Examples:
   ngx-translate-extract -i ./src/ -o './i18n/{en,da}.json'                  Extract (ts, html) and save to da.json and en.json using brace expansion
   ngx-translate-extract -i './src/**/*.{ts,tsx,html}' -o strings.json       Extract from ts, tsx and html
   ngx-translate-extract -i './src/**/!(*.spec).{ts,html}' -o strings.json   Extract from ts, html, excluding files with ".spec"
+  ngx-translate-extract -i './src/' -o strings.json -sp 'PREFIX.'           Strip the prefix "PREFIX." from the json keys
 ```
 
 ## Note for GetText users
 
-Please pay attention of which version of `gettext-parser` you actually use in your project. 
+Please pay attention of which version of `gettext-parser` you actually use in your project.
 For instance, `gettext-parser:1.2.2` does not support HTML tags in translation keys.
 
 ## Credits
 
-- Original library, idea and code: [Kim Biesbjerg](https://github.com/biesbjerg/ngx-translate-extract) ❤️
-- Further updates and improvements by [bartholomej](https://github.com/bartholomej) ❤️
-- Further updates and improvements by [P4](https://github.com/P4) ❤️
-- Further updates and improvements by [colsen1991](https://github.com/colsen1991) ❤️
-- Further updates and improvements by [tmijieux](https://github.com/tmijieux) ❤️
+-   Original library, idea and code: [Kim Biesbjerg](https://github.com/biesbjerg/ngx-translate-extract) ❤️
+-   Further updates and improvements by [bartholomej](https://github.com/bartholomej) ❤️
+-   Further updates and improvements by [P4](https://github.com/P4) ❤️
+-   Further updates and improvements by [colsen1991](https://github.com/colsen1991) ❤️
+-   Further updates and improvements by [tmijieux](https://github.com/tmijieux) ❤️

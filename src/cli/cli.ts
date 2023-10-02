@@ -110,7 +110,7 @@ export const cli: any = y // temporary any
 		describe: 'Strip a prefix from the extracted key',
 		type: 'string'
 	})
-	.group(['format', 'format-indentation', 'sort', 'clean', 'replace'], 'Output')
+	.group(['format', 'format-indentation', 'sort', 'clean', 'replace', 'strip-prefix'], 'Output')
 	.group(['key-as-default-value', 'null-as-default-value', 'string-as-default-value'], 'Extracted key value (defaults to empty string)')
 	.conflicts('key-as-default-value', 'null-as-default-value')
 	.example('$0 -i ./src-a/ -i ./src-b/ -o strings.json', 'Extract (ts, html) from multiple paths')
@@ -119,6 +119,7 @@ export const cli: any = y // temporary any
 	.example("$0 -i ./src/ -o './i18n/{en,da}.json'", 'Extract (ts, html) and save to da.json and en.json using brace expansion')
 	.example("$0 -i './src/**/*.{ts,tsx,html}' -o strings.json", 'Extract from ts, tsx and html')
 	.example("$0 -i './src/**/!(*.spec).{ts,html}' -o strings.json", 'Extract from ts, html, excluding files with ".spec" in filename')
+	.example("$0 -i ./src/ -o strings.json -sp 'PREFIX.'", "Strip the prefix 'PREFIX.' from the json keys")
 	.wrap(110)
 	.exitProcess(true)
 	.parse(process.argv);
