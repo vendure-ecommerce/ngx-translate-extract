@@ -10,7 +10,9 @@ import {
 	LiteralMap,
 	LiteralArray,
 	Interpolation,
-	Call
+	Call,
+	TmplAstIfBlockBranch,
+	TmplAstSwitchBlockCase
 } from '@angular/compiler';
 
 import { ParserInterface } from './parser.interface.js';
@@ -20,7 +22,7 @@ import { isPathAngularComponent, extractComponentInlineTemplate } from '../utils
 export const TRANSLATE_PIPE_NAMES = ['translate', 'marker'];
 
 export class PipeParser implements ParserInterface {
-	public extract(source: string, filePath: string): TranslationCollection | null {
+	public extract(source: string, filePath: string): TranslationCollection {
 		if (filePath && isPathAngularComponent(filePath)) {
 			source = extractComponentInlineTemplate(source);
 		}
@@ -37,17 +39,30 @@ export class PipeParser implements ParserInterface {
 	}
 
 	protected findPipesInNode(node: any): BindingPipe[] {
-		let ret: BindingPipe[] = [];
+		const ret: BindingPipe[] = [];
 
-		if (node?.children) {
-			ret = node.children.reduce(
-				(result: BindingPipe[], childNode: TmplAstNode) => {
-					const children = this.findPipesInNode(childNode);
-					return result.concat(children);
-				},
-				[ret]
-			);
+		const nodeChildren = node?.children ?? [];
+
+		// @if and @switch blocks
+		const nodeBranchesOrCases: TmplAstIfBlockBranch[] | TmplAstSwitchBlockCase[] = node?.branches ?? node?.cases ?? [];
+
+		// @for blocks
+		const emptyBlockChildren = node?.empty?.children ?? [];
+
+		// @deferred blocks
+		const errorBlockChildren = node?.error?.children ?? [];
+		const loadingBlockChildren = node?.loading?.children ?? [];
+		const placeholderBlockChildren = node?.placeholder?.children ?? [];
+
+		nodeChildren.push(...emptyBlockChildren, ...errorBlockChildren, ...loadingBlockChildren, ...placeholderBlockChildren);
+
+		if (nodeChildren.length > 0) {
+			ret.push(...this.extractPipesFromChildNodes(nodeChildren));
 		}
+
+		nodeBranchesOrCases.forEach((branch) => {
+			ret.push(...this.extractPipesFromChildNodes(branch.children));
+		});
 
 		if (node?.value?.ast) {
 			ret.push(...this.getTranslatablesFromAst(node.value.ast));
@@ -55,7 +70,7 @@ export class PipeParser implements ParserInterface {
 
 		if (node?.attributes) {
 			const translateableAttributes = node.attributes.filter((attr: TmplAstTextAttribute) => TRANSLATE_PIPE_NAMES.includes(attr.name));
-			ret = [...ret, ...translateableAttributes];
+			ret.push(...ret, ...translateableAttributes);
 		}
 
 		if (node?.inputs) {
@@ -76,6 +91,10 @@ export class PipeParser implements ParserInterface {
 		}
 
 		return ret;
+	}
+
+	protected extractPipesFromChildNodes(nodeChildren: TmplAstNode[]) {
+		return nodeChildren.map((childNode) => this.findPipesInNode(childNode)).flat();
 	}
 
 	protected parseTranslationKeysFromPipe(pipeContent: BindingPipe | LiteralPrimitive | Conditional): string[] {

@@ -106,13 +106,13 @@ describe('PipeParser', () => {
 			it('should extract strings with escaped quotes', () => {
 				const contents = `Hello {{ 'World\\'s largest potato' | ${translatePipeName} }}`;
 				const keys = parser.extract(contents, templateFilename).keys();
-				expect(keys).to.deep.equal(['World\'s largest potato']);
+				expect(keys).to.deep.equal(["World's largest potato"]);
 			});
 
 			it('should extract strings with multiple escaped quotes', () => {
 				const contents = `{{ 'C\\'est ok. C\\'est ok' | ${translatePipeName} }}`;
 				const keys = parser.extract(contents, templateFilename).keys();
-				expect(keys).to.deep.equal(['C\'est ok. C\'est ok']);
+				expect(keys).to.deep.equal(["C'est ok. C'est ok"]);
 			});
 
 			it('should extract interpolated strings using translate pipe in attributes', () => {
@@ -211,25 +211,25 @@ describe('PipeParser', () => {
 			});
 
 			it('should extract translate pipe used as pipe argument', () => {
-				const contents = '{{ value | valueToTranslationKey: (\'argument\' | translate) }}';
+				const contents = "{{ value | valueToTranslationKey: ('argument' | translate) }}";
 				const keys = parser.extract(contents, templateFilename).keys();
 				expect(keys).to.deep.equal(['argument']);
 			});
 
 			it('should extract nested uses of translate pipe', () => {
-				const contents = '{{ \'Hello\' | translate: {world: (\'World\' | translate)} }}';
+				const contents = "{{ 'Hello' | translate: {world: ('World' | translate)} }}";
 				const keys = parser.extract(contents, templateFilename).keys();
 				expect(keys).to.deep.equal(['Hello', 'World']);
 			});
 
 			it('should extract strings from piped arguments inside a function calls on templates', () => {
-				const contents = '{{ callMe(\'Hello\' | translate, \'World\' | translate ) }}';
+				const contents = "{{ callMe('Hello' | translate, 'World' | translate ) }}";
 				const keys = parser.extract(contents, templateFilename).keys();
 				expect(keys).to.deep.equal(['Hello', 'World']);
 			});
 
 			it('should extract from objects in property bindings', () => {
-				const contents = '<hello [values] ="{ hello: (\'Hello\' | translate), world: (\'World\' | translate) }"></hello>';
+				const contents = "<hello [values] =\"{ hello: ('Hello' | translate), world: ('World' | translate) }\"></hello>";
 				const keys = parser.extract(contents, templateFilename).keys();
 				expect(keys).to.deep.equal(['Hello', 'World']);
 			});
@@ -241,7 +241,8 @@ describe('PipeParser', () => {
 			});
 
 			it('should extract form inputs to structural directives', () => {
-				const contents = '<ng-container *ngTemplateOutlet="template; context:{ hello: \'Hello\' | translate, world: \'World\' | translate }"></ng-container>';
+				const contents =
+					"<ng-container *ngTemplateOutlet=\"template; context:{ hello: 'Hello' | translate, world: 'World' | translate }\"></ng-container>";
 				const keys = parser.extract(contents, templateFilename).keys();
 				expect(keys).to.deep.equal(['Hello', 'World']);
 			});
@@ -273,5 +274,100 @@ describe('PipeParser', () => {
 		}"></ng-container>`;
 		const keys = parser.extract(contents, templateFilename).keys();
 		expect(keys).to.deep.equal([`Hello`, `World`]);
+	});
+
+	describe('Built-in control flow', () => {
+		it('should extract keys from elements inside an @if/@else block', () => {
+			const contents = `
+				@if (loggedIn) {
+					{{ 'if.block' | translate }}
+				} @else if (condition) {
+					{{ 'elseif.block' | translate }}
+				} @else {
+					{{ 'else.block' | translate }}
+				}
+			`;
+
+			const keys = parser.extract(contents, templateFilename)?.keys();
+			expect(keys).to.deep.equal(['if.block', 'elseif.block', 'else.block']);
+		});
+
+		it('should extract keys from elements inside a @for/@empty block', () => {
+			const contents = `
+				@for (user of users; track user.id) {
+					{{ 'for.block' | translate }}
+				} @empty {
+					{{ 'for.empty.block' | translate }}
+				}
+			`;
+
+			const keys = parser.extract(contents, templateFilename).keys();
+			expect(keys).to.deep.equal(['for.block', 'for.empty.block']);
+		});
+
+		it('should extract keys from elements inside an @switch/@case block', () => {
+			const contents = `
+			@switch (condition) {
+				@case (caseA) {
+				  {{ 'switch.caseA' | translate }}
+				}
+				@case (caseB) {
+				  {{ 'switch.caseB' | translate }}
+				}
+				@default {
+				  {{ 'switch.default' | translate }}
+				}
+			  }`;
+
+			const keys = parser.extract(contents, templateFilename).keys();
+			expect(keys).to.deep.equal(['switch.caseA', 'switch.caseB', 'switch.default']);
+		});
+
+		it('should extract keys from elements inside an @deferred/@error/@loading/@placeholder block', () => {
+			const contents = `
+				@defer (on viewport) {
+					{{ 'defer' | translate }}
+				} @loading {
+					{{ 'defer.loading' | translate }}
+				} @error {
+					{{ 'defer.error' | translate }}
+				} @placeholder {
+					{{ 'defer.placeholder' | translate }}
+				}`;
+
+			const keys = parser.extract(contents, templateFilename).keys();
+			expect(keys).to.deep.equal(['defer', 'defer.error', 'defer.loading', 'defer.placeholder']);
+		});
+
+		it('should extract keys from nested blocks', () => {
+			const contents = `
+				@if (loggedIn) {
+					{{ 'if.block' | translate }}
+					@if (nestedCondition) {
+						@if (nestedCondition) {
+							{{ 'nested.if.block' | translate }}
+						}  @else {
+							{{ 'nested.else.block' | translate }}
+						}
+					} @else if (nestedElseIfCondition) {
+						{{ 'nested.elseif.block' | translate }}
+					}
+				} @else if (condition) {
+					{{ 'elseif.block' | translate }}
+				} @else {
+					{{ 'else.block' | translate }}
+				}
+			`;
+
+			const keys = parser.extract(contents, templateFilename)?.keys();
+			expect(keys).to.deep.equal([
+				'if.block',
+				'nested.if.block',
+				'nested.else.block',
+				'nested.elseif.block',
+				'elseif.block',
+				'else.block'
+			]);
+		});
 	});
 });

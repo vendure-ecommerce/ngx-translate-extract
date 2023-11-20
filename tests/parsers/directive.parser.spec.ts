@@ -170,6 +170,103 @@ describe('DirectiveParser', () => {
 				const keys = parser.extract(contents, templateFilename).keys();
 				expect(keys).to.deep.equal(['this is an example']);
 			});
+
+			describe('Built-in control flow', () => {
+				it('should extract keys from elements inside an @if/@else block', () => {
+					const contents = `
+						@if (loggedIn) {
+							<p ${translateAttrName}>if.block</p>
+						} @else if (condition) {
+							<p ${translateAttrName}>elseif.block</p>
+						} @else {
+							<p ${translateAttrName}>else.block</p>
+						}
+					`;
+
+					const keys = parser.extract(contents, templateFilename)?.keys();
+					expect(keys).to.deep.equal(['if.block', 'elseif.block', 'else.block']);
+				});
+
+				it('should extract keys from elements inside a @for/@empty block', () => {
+					const contents = `
+						@for (user of users; track user.id) {
+							<p ${translateAttrName}>for.block</p>
+						} @empty {
+							<p ${translateAttrName}>for.empty.block</p>
+						}
+					`;
+
+					const keys = parser.extract(contents, templateFilename).keys();
+					expect(keys).to.deep.equal(['for.block', 'for.empty.block']);
+				});
+
+				it('should extract keys from elements inside an @switch/@case block', () => {
+					const contents = `
+						@switch (condition) {
+							@case (caseA) {
+								<p ${translateAttrName}>switch.caseA</p>
+							}
+							@case (caseB) {
+								<p ${translateAttrName}>switch.caseB</p>
+							}
+							@default {
+								<p ${translateAttrName}>switch.default</p>
+							}
+						}
+					`;
+
+					const keys = parser.extract(contents, templateFilename).keys();
+					expect(keys).to.deep.equal(['switch.caseA', 'switch.caseB', 'switch.default']);
+				});
+
+				it('should extract keys from elements inside an @deferred/@error/@loading/@placeholder block', () => {
+					const contents = `
+						@defer (on viewport) {
+							<p ${translateAttrName}>defer</p>
+						} @loading {
+							<p ${translateAttrName}>defer.loading</p>
+						} @error {
+							<p ${translateAttrName}>defer.error</p>
+						} @placeholder {
+							<p ${translateAttrName}>defer.placeholder</p>
+						}
+					`;
+
+					const keys = parser.extract(contents, templateFilename).keys();
+					expect(keys).to.deep.equal(['defer', 'defer.placeholder', 'defer.loading', 'defer.error']);
+				});
+
+				it('should extract keys from nested blocks', () => {
+					const contents = `
+						@if (loggedIn) {
+							<p ${translateAttrName}>if.block</p>
+							@if (nestedCondition) {
+								@if (nestedCondition) {
+									<p ${translateAttrName}>nested.if.block</p>
+								}  @else {
+									<p ${translateAttrName}>nested.else.block</p>
+								}
+							} @else if (nestedElseIfCondition) {
+								<p ${translateAttrName}>nested.elseif.block</p>
+							}
+						} @else if (condition) {
+							<p ${translateAttrName}>elseif.block</p>
+						} @else {
+							<p ${translateAttrName}>else.block</p>
+						}
+					`;
+
+					const keys = parser.extract(contents, templateFilename)?.keys();
+					expect(keys).to.deep.equal([
+						'if.block',
+						'elseif.block',
+						'else.block',
+						'nested.elseif.block',
+						'nested.if.block',
+						'nested.else.block'
+					]);
+				});
+			});
 		});
 	});
 });
