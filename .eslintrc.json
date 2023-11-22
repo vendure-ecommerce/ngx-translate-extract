@@ -75,7 +75,8 @@
         "@typescript-eslint/prefer-function-type": "error",
         "@typescript-eslint/quotes": [
             "error",
-            "single"
+            "single",
+            { "avoidEscape": true }
         ],
         "@typescript-eslint/semi": [
             "error",
