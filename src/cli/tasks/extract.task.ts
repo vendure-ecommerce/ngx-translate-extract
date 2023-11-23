@@ -1,5 +1,5 @@
 import { cyan, green, bold, dim, red } from 'colorette';
-import { sync } from 'glob';
+import { globSync } from 'glob';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -73,7 +73,7 @@ export class ExtractTask implements TaskInterface {
 			try {
 				let event = 'CREATED';
 				if (fs.existsSync(outputPath)) {
-				  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+					// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 					this.options.replace ? (event = 'REPLACED') : (event = 'MERGED');
 				}
 				this.save(outputPath, final);
@@ -147,7 +147,10 @@ export class ExtractTask implements TaskInterface {
 	 * Get all files matching pattern
 	 */
 	protected getFiles(pattern: string): string[] {
-		return sync(pattern).filter((filePath) => fs.statSync(filePath).isFile());
+		// Ensure that the pattern consistently uses forward slashes ("/")
+		// for cross-platform compatibility, as Glob patterns should always use "/"
+		const sanitizedPattern = pattern.split(path.sep).join(path.posix.sep);
+		return globSync(sanitizedPattern).filter((filePath) => fs.statSync(filePath).isFile());
 	}
 
 	protected out(...args: any[]): void {
