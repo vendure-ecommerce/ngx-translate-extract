@@ -1,5 +1,5 @@
 import { cyan, green, bold, dim, red } from 'colorette';
-import pkg from 'glob';
+import { sync } from 'glob';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -8,8 +8,6 @@ import { TaskInterface } from './task.interface.js';
 import { ParserInterface } from '../../parsers/parser.interface.js';
 import { PostProcessorInterface } from '../../post-processors/post-processor.interface.js';
 import { CompilerInterface } from '../../compilers/compiler.interface.js';
-
-const { sync } = pkg;
 
 export interface ExtractTaskOptionsInterface {
 	replace?: boolean;
