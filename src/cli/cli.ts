@@ -25,12 +25,14 @@ const y = yargs().option('patterns', {
 	describe: 'Default patterns',
 	type: 'array',
 	default: ['/**/*.html', '/**/*.ts'],
+	// eslint-disable-next-line id-denylist
+	string: true,
 	hidden: true
 });
 
-const parsed = y.parse() as any; // temporary any
+const parsed = await y.parse();
 
-export const cli: any = y // temporary any
+const cli = await y
 	.usage('Extract strings from files for translation.\nUsage: $0 [options]')
 	.version(process.env.npm_package_version)
 	.alias('version', 'v')
