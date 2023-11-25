@@ -11,8 +11,11 @@ import {
 	LiteralArray,
 	Interpolation,
 	Call,
-	TmplAstIfBlockBranch,
-	TmplAstSwitchBlockCase
+	TmplAstIfBlock,
+	TmplAstSwitchBlock,
+	TmplAstDeferredBlock,
+	TmplAstForLoopBlock,
+	TmplAstElement
 } from '@angular/compiler';
 
 import { ParserInterface } from './parser.interface.js';
@@ -20,6 +23,58 @@ import { TranslationCollection } from '../utils/translation.collection.js';
 import { isPathAngularComponent, extractComponentInlineTemplate } from '../utils/utils.js';
 
 export const TRANSLATE_PIPE_NAMES = ['translate', 'marker'];
+
+function traverseAstNodes<RESULT extends unknown, NODE extends TmplAstNode | TmplAstElement>(
+	nodes: (NODE | null)[],
+	visitor: (node: NODE) => RESULT[],
+	accumulator: RESULT[] = []
+): RESULT[] {
+	for (const node of nodes) {
+		if (node) {
+			traverseAstNode(node, visitor, accumulator);
+		}
+	}
+
+	return accumulator;
+}
+
+function traverseAstNode<RESULT extends unknown, NODE extends TmplAstNode | TmplAstElement>(
+	node: NODE,
+	visitor: (node: NODE) => RESULT[],
+	accumulator: RESULT[] = []
+): RESULT[] {
+	accumulator.push(...visitor(node));
+
+	const children: TmplAstNode[] = [];
+	// children of templates, html elements or blocks
+	if ('children' in node && node.children) {
+		children.push(...node.children);
+	}
+
+	// contents of @for extra sibling block @empty
+	if (node instanceof TmplAstForLoopBlock) {
+		children.push(node.empty);
+	}
+
+	// contents of @defer extra sibling blocks @error, @placeholder and @loading
+	if (node instanceof TmplAstDeferredBlock) {
+		children.push(node.error);
+		children.push(node.loading);
+		children.push(node.placeholder);
+	}
+
+	// contents of @if and @else (ignoring the @if(...) condition statement though)
+	if (node instanceof TmplAstIfBlock) {
+		children.push(...node.branches.flatMap((inner) => inner.children));
+	}
+
+	// contents of @case blocks (ignoring the @switch(...) statement though)
+	if (node instanceof TmplAstSwitchBlock) {
+		children.push(...node.cases.flatMap((inner) => inner.children));
+	}
+
+	return traverseAstNodes(children, visitor, accumulator);
+}
 
 export class PipeParser implements ParserInterface {
 	public extract(source: string, filePath: string): TranslationCollection {
@@ -29,7 +84,9 @@ export class PipeParser implements ParserInterface {
 
 		let collection: TranslationCollection = new TranslationCollection();
 		const nodes: TmplAstNode[] = this.parseTemplate(source, filePath);
-		const pipes: BindingPipe[] = nodes.map((node) => this.findPipesInNode(node)).flat();
+
+		const pipes = traverseAstNodes(nodes, (node) => this.findPipesInNode(node));
+
 		pipes.forEach((pipe) => {
 			this.parseTranslationKeysFromPipe(pipe).forEach((key: string) => {
 				collection = collection.add(key, '', filePath);
@@ -40,29 +97,6 @@ export class PipeParser implements ParserInterface {
 
 	protected findPipesInNode(node: any): BindingPipe[] {
 		const ret: BindingPipe[] = [];
-
-		const nodeChildren = node?.children ?? [];
-
-		// @if and @switch blocks
-		const nodeBranchesOrCases: TmplAstIfBlockBranch[] | TmplAstSwitchBlockCase[] = node?.branches ?? node?.cases ?? [];
-
-		// @for blocks
-		const emptyBlockChildren = node?.empty?.children ?? [];
-
-		// @deferred blocks
-		const errorBlockChildren = node?.error?.children ?? [];
-		const loadingBlockChildren = node?.loading?.children ?? [];
-		const placeholderBlockChildren = node?.placeholder?.children ?? [];
-
-		nodeChildren.push(...emptyBlockChildren, ...errorBlockChildren, ...loadingBlockChildren, ...placeholderBlockChildren);
-
-		if (nodeChildren.length > 0) {
-			ret.push(...this.extractPipesFromChildNodes(nodeChildren));
-		}
-
-		nodeBranchesOrCases.forEach((branch) => {
-			ret.push(...this.extractPipesFromChildNodes(branch.children));
-		});
 
 		if (node?.value?.ast) {
 			ret.push(...this.getTranslatablesFromAst(node.value.ast));
@@ -91,10 +125,6 @@ export class PipeParser implements ParserInterface {
 		}
 
 		return ret;
-	}
-
-	protected extractPipesFromChildNodes(nodeChildren: TmplAstNode[]) {
-		return nodeChildren.map((childNode) => this.findPipesInNode(childNode)).flat();
 	}
 
 	protected parseTranslationKeysFromPipe(pipeContent: BindingPipe | LiteralPrimitive | Conditional): string[] {

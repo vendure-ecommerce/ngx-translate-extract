@@ -369,5 +369,18 @@ describe('PipeParser', () => {
 				'else.block'
 			]);
 		});
+
+		it('should handle ast with arbitrary depth without hitting the call stack limit', () => {
+			const depth = 500;
+			const contents = `
+				${Array(depth).fill('<i>').join('')}
+					{{ 'deep' | translate }}
+				${Array(depth).fill('</i>').join('')}
+			`;
+
+			const keys = parser.extract(contents, templateFilename)?.keys();
+			expect(contents).to.contain('<i><i><i><i><i><i>');
+			expect(keys).to.deep.equal(['deep']);
+		});
 	});
 });
