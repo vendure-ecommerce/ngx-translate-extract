@@ -28,4 +28,40 @@ describe('SortByKeyPostProcessor', () => {
 			z: {value: 'last value', sourceFiles: []}
 		});
 	});
+
+	it('should perform case insensitive sorting', () => {
+		const collection = new TranslationCollection({
+			c: { value: 'letter c', sourceFiles: [] },
+			j: { value: 'letter j', sourceFiles: [] },
+			b: { value: 'letter b', sourceFiles: [] },
+			a: { value: 'letter a', sourceFiles: [] },
+			h: { value: 'letter h', sourceFiles: [] },
+			B: { value: 'letter B', sourceFiles: [] },
+			H: { value: 'letter H', sourceFiles: [] },
+			i: { value: 'letter i', sourceFiles: [] },
+			C: { value: 'letter C', sourceFiles: [] },
+			e: { value: 'letter e', sourceFiles: [] },
+			f: { value: 'letter f', sourceFiles: [] },
+			d: { value: 'letter d', sourceFiles: [] },
+			A: { value: 'letter A', sourceFiles: [] },
+			g: { value: 'letter g', sourceFiles: [] }
+		});
+
+		expect(processor.process(collection, new TranslationCollection(), new TranslationCollection()).values).to.deep.equal({
+			A: { value: 'letter A', sourceFiles: [] },
+			a: { value: 'letter a', sourceFiles: [] },
+			B: { value: 'letter B', sourceFiles: [] },
+			b: { value: 'letter b', sourceFiles: [] },
+			c: { value: 'letter c', sourceFiles: [] },
+			C: { value: 'letter C', sourceFiles: [] },
+			d: { value: 'letter d', sourceFiles: [] },
+			e: { value: 'letter e', sourceFiles: [] },
+			f: { value: 'letter f', sourceFiles: [] },
+			g: { value: 'letter g', sourceFiles: [] },
+			H: { value: 'letter H', sourceFiles: [] },
+			h: { value: 'letter h', sourceFiles: [] },
+			i: { value: 'letter i', sourceFiles: [] },
+			j: { value: 'letter j', sourceFiles: [] }
+		});
+	});
 });

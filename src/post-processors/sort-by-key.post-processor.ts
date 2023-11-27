@@ -5,6 +5,7 @@ export class SortByKeyPostProcessor implements PostProcessorInterface {
 	public name: string = 'SortByKey';
 
 	public process(draft: TranslationCollection, extracted: TranslationCollection, existing: TranslationCollection): TranslationCollection {
-		return draft.sort();
+		const compareFn = new Intl.Collator('en', {sensitivity: 'base'}).compare;
+		return draft.sort(compareFn);
 	}
 }
