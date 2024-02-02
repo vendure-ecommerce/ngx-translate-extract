@@ -69,6 +69,15 @@ Useful when loading multiple translation files in the same application and prefi
 ngx-translate-extract --input ./src --output ./src/i18n/{da,en}.json --strip-prefix 'PREFIX.'
 ```
 
+**Cache for consecutive runs**
+
+If your project grows rather large, runs can take seconds. With this cache, unchanged files don't need
+to be parsed again, keeping consecutive runs under .5 seconds.
+
+```bash
+ngx-translate-extract --cache-file node_modules/.i18n-cache/my-cache-file --input ./src --output ./src/i18n/{da,en}.json
+```
+
 ### JSON indentation
 
 Tabs are used by default for indentation when saving extracted strings in json formats:
@@ -117,6 +126,7 @@ Options:
                  multiple paths                                               [array] [required] [default: ["./"]]
   --output, -o   Paths where you would like to save extracted strings. You can use path expansion, glob
                  patterns and multiple paths                                                    [array] [required]
+  --cache-file   Cache parse results to speed up consecutive runs                                         [string]
   --marker, -m   Custom marker function name                                                              [string]
 
 Examples:

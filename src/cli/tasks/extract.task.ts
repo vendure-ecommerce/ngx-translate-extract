@@ -3,11 +3,13 @@ import { globSync } from 'glob';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { TranslationCollection } from '../../utils/translation.collection.js';
+import { TranslationCollection, TranslationType } from '../../utils/translation.collection.js';
 import { TaskInterface } from './task.interface.js';
 import { ParserInterface } from '../../parsers/parser.interface.js';
 import { PostProcessorInterface } from '../../post-processors/post-processor.interface.js';
 import { CompilerInterface } from '../../compilers/compiler.interface.js';
+import type { CacheInterface } from '../../cache/cache-interface.js';
+import { NullCache } from '../../cache/null-cache.js';
 
 export interface ExtractTaskOptionsInterface {
 	replace?: boolean;
@@ -21,6 +23,7 @@ export class ExtractTask implements TaskInterface {
 	protected parsers: ParserInterface[] = [];
 	protected postProcessors: PostProcessorInterface[] = [];
 	protected compiler: CompilerInterface;
+	protected cache: CacheInterface<TranslationType[]> = new NullCache<TranslationType[]>();
 
 	public constructor(protected inputs: string[], protected outputs: string[], options?: ExtractTaskOptionsInterface) {
 		this.inputs = inputs.map((input) => path.resolve(input));
@@ -83,10 +86,17 @@ export class ExtractTask implements TaskInterface {
 				throw e;
 			}
 		});
+
+		this.cache.persist();
 	}
 
 	public setParsers(parsers: ParserInterface[]): this {
 		this.parsers = parsers;
+		return this;
+	}
+
+	public setCache(cache: CacheInterface<TranslationType[]>): this {
+		this.cache = cache;
 		return this;
 	}
 
@@ -104,20 +114,37 @@ export class ExtractTask implements TaskInterface {
 	 * Extract strings from specified input dirs using configured parsers
 	 */
 	protected extract(): TranslationCollection {
-		let collection: TranslationCollection = new TranslationCollection();
+		const collectionTypes: TranslationType[] = [];
+		let skipped = 0;
 		this.inputs.forEach((pattern) => {
 			this.getFiles(pattern).forEach((filePath) => {
-				this.out(dim('- %s'), filePath);
 				const contents: string = fs.readFileSync(filePath, 'utf-8');
-				this.parsers.forEach((parser) => {
-					const extracted = parser.extract(contents, filePath);
-					if (extracted instanceof TranslationCollection) {
-						collection = collection.union(extracted);
-					}
+				skipped += 1;
+				const cachedCollectionValues = this.cache.get(`${pattern}:${filePath}:${contents}`, () => {
+					skipped -= 1;
+					this.out(dim('- %s'), filePath);
+					return this.parsers
+						.map((parser) => {
+							const extracted = parser.extract(contents, filePath);
+							return extracted instanceof TranslationCollection ? extracted.values : undefined;
+						})
+						.filter((result): result is TranslationType => result && !!Object.keys(result).length);
 				});
+
+				collectionTypes.push(...cachedCollectionValues);
 			});
 		});
-		return collection;
+
+		if (skipped) {
+			this.out(dim('- %s unchanged files skipped via cache'), skipped);
+		}
+
+		const values: TranslationType = {};
+		for (const collectionType of collectionTypes) {
+			Object.assign(values, collectionType);
+		}
+
+		return new TranslationCollection(values);
 	}
 
 	/**
