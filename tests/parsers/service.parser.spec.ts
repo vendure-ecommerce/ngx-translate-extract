@@ -32,6 +32,25 @@ describe('ServiceParser', () => {
 		expect(keys).to.deep.equal(['It works!']);
 	});
 
+	it('should locate TranslateService when injected with public, protected, private and readonly keyword', () => {
+		const ACCESSORS = ['public', 'protected', 'private', 'readonly'];
+
+		ACCESSORS.forEach((accessor) => {
+			const contents = `
+				@Component({ })
+				export class AppComponent {
+					public constructor(${accessor} _translateService: TranslateService) { }
+					public test() {
+						this._translateService.get('Hello get');
+						this._translateService.instant('Hello instant');
+						this._translateService.stream('Hello stream');
+					}
+				`;
+			const keys = parser.extract(contents, componentFilename)?.keys();
+			expect(keys).to.deep.equal(['Hello get', 'Hello instant', 'Hello stream'], `Accessor value: "${accessor}"`);
+		});
+	});
+
 	it('should support extracting binary expressions', () => {
 		const contents = `
 			@Component({ })
