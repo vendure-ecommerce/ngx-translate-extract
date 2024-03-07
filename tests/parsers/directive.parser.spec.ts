@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from 'vitest';
 
 import { DirectiveParser, TRANSLATE_ATTR_NAMES } from '../../src/parsers/directive.parser.js';
 

@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from 'vitest';
 
 import { PipeParser, TRANSLATE_PIPE_NAMES } from '../../src/parsers/pipe.parser.js';
 

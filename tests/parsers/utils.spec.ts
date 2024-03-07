@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, expect, it } from 'vitest';
 
 import { isPathAngularComponent, extractComponentInlineTemplate } from '../../src/utils/utils.js';
 
