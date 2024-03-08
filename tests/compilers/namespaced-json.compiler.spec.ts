@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from 'vitest';
 
 import { TranslationCollection } from '../../src/utils/translation.collection.js';
 import { NamespacedJsonCompiler } from '../../src/compilers/namespaced-json.compiler.js';

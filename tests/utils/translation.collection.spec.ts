@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from 'vitest';
 
 import { TranslationCollection } from '../../src/utils/translation.collection.js';
 
@@ -24,7 +24,7 @@ describe('StringCollection', () => {
 		expect(newCollection.get('theKey')).to.deep.equal({value: 'theVal', sourceFiles: ['path/to/file.ts']});
 
 		const updatedCollection = newCollection.add('theKey', 'theVal', 'path/to/another-file.ts');
-		console.log(updatedCollection.get('theKey'));
+		expect(updatedCollection.get('theKey')).to.deep.equal({value: 'theVal', sourceFiles: ['path/to/file.ts', 'path/to/another-file.ts']});
 	});
 
 	it('should add key with default value', () => {

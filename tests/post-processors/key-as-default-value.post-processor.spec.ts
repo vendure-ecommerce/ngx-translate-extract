@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from 'vitest';
 
 import { PostProcessorInterface } from '../../src/post-processors/post-processor.interface.js';
 import { KeyAsDefaultValuePostProcessor } from '../../src/post-processors/key-as-default-value.post-processor.js';

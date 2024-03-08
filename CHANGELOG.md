@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.1.1 (2024-03-08)
+
+- Fix TranslateService not resolved when injected with readonly keyword ([#39](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/39))
+
 ## v9.1.0 (2024-02-05)
 
 - Add support for caching via the new `--cache-file` option ([#38](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/38))

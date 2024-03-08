@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from 'vitest';
 import { PostProcessorInterface } from '../../src/post-processors/post-processor.interface.js';
 import { StripPrefixPostProcessor } from '../../src/post-processors/strip-prefix.post-processor.js';
 import { TranslationCollection } from '../../src/utils/translation.collection.js';
