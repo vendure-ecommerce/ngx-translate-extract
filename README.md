@@ -110,7 +110,7 @@ Output
   --format, -f                Format        [string] [choices: "json", "namespaced-json", "pot"] [default: "json"]
   --format-indentation, --fi  Format indentation (JSON/Namedspaced JSON)                  [string] [default: "\t"]
   --sort, -s                  Sort strings in alphabetical order                                         [boolean]
-  --sort-sensitivity, -ss     Sensitivity when sorting strings 										     [boolean]
+  --sort-sensitivity, -ss     Sensitivity when sorting strings 										     [string]
   --clean, -c                 Remove obsolete strings after merge                                        [boolean]
   --replace, -r               Replace the contents of output file if it exists (Merges by default)       [boolean]
   --strip-prefix, -sp         Strip prefix from key                                                       [string]
