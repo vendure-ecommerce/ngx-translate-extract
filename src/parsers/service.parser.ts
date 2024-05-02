@@ -17,7 +17,9 @@ import {
 	findMethodParameterByType,
 	findConstructorDeclaration,
 	getSuperClassName,
-	getImportPath
+	getImportPath,
+	findFunctionExpressions,
+	findVariableNameByInjectType
 } from '../utils/ast-helpers.js';
 
 const TRANSLATE_SERVICE_TYPE_REFERENCE = 'TranslateService';
@@ -28,13 +30,22 @@ export class ServiceParser implements ParserInterface {
 
 	public extract(source: string, filePath: string): TranslationCollection | null {
 		const sourceFile = tsquery.ast(source, filePath);
-
 		const classDeclarations = findClassDeclarations(sourceFile);
-		if (!classDeclarations) {
+		const functionDeclarations = findFunctionExpressions(sourceFile);
+
+		if (!classDeclarations && !functionDeclarations) {
 			return null;
 		}
 
 		let collection: TranslationCollection = new TranslationCollection();
+
+		const translateServiceCallExpressions: CallExpression[] = [];
+
+		functionDeclarations.forEach((fnDeclaration) => {
+			const translateServiceVariableName = findVariableNameByInjectType(fnDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
+			const callExpressions = findMethodCallExpressions(sourceFile, translateServiceVariableName, TRANSLATE_SERVICE_METHOD_NAMES);
+			translateServiceCallExpressions.push(...callExpressions);
+		});
 
 		classDeclarations.forEach((classDeclaration) => {
 			const callExpressions = [
@@ -42,15 +53,18 @@ export class ServiceParser implements ParserInterface {
 				...this.findPropertyCallExpressions(classDeclaration, sourceFile)
 			];
 
-			callExpressions.forEach((callExpression) => {
+			translateServiceCallExpressions.push(...callExpressions);
+		});
+
+		translateServiceCallExpressions
+			.filter((callExpression) => !!callExpression.arguments?.[0])
+			.forEach((callExpression) => {
 				const [firstArg] = callExpression.arguments;
-				if (!firstArg) {
-					return;
-				}
+
 				const strings = getStringsFromExpression(firstArg);
 				collection = collection.addKeys(strings, filePath);
 			});
-		});
+
 		return collection;
 	}
 

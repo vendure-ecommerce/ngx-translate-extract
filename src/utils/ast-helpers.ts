@@ -42,6 +42,10 @@ export function findClassDeclarations(node: Node, name: string = null): ClassDec
 	return tsquery<ClassDeclaration>(node, query);
 }
 
+export function findFunctionExpressions(node: Node) {
+	return tsquery(node, 'VariableDeclaration > ArrowFunction, VariableDeclaration > FunctionExpression');
+}
+
 export function getSuperClassName(node: Node): string | null {
 	const query = 'ClassDeclaration > HeritageClause Identifier';
 	const [result] = tsquery<Identifier>(node, query);
@@ -78,12 +82,23 @@ export function findMethodParameterByType(node: Node, type: string): string | nu
 	return null;
 }
 
+export function findVariableNameByInjectType(node: Node, type: string): string | null {
+	const query = `VariableDeclaration:has(Identifier[name="inject"]):has(CallExpression > Identifier[name="${type}"]) > Identifier`;
+	const [result] = tsquery<Identifier>(node, query);
+
+	return result?.text ?? null;
+}
+
 export function findMethodCallExpressions(node: Node, propName: string, fnName: string | string[]): CallExpression[] {
-	if (Array.isArray(fnName)) {
-		fnName = fnName.join('|');
-	}
-	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnName})$/]):has(PropertyAccessExpression:has(Identifier[name="${propName}"]):not(:has(ThisKeyword)))`;
-	return tsquery<PropertyAccessExpression>(node, query).map((n) => n.parent as CallExpression);
+	const functionNames = typeof fnName === 'string' ? [fnName] : fnName;
+
+	const fnNameRegex = functionNames.join('|');
+
+	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(PropertyAccessExpression:has(Identifier[name="${propName}"]):not(:has(ThisKeyword)))`;
+
+	return tsquery(node, query)
+		.filter((n) => functionNames.includes(n.getLastToken().getText()))
+		.map((n) => n.parent as CallExpression);
 }
 
 export function findClassPropertiesConstructorParameterByType(node: ClassDeclaration, type: string): string[] {
