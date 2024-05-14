@@ -15,7 +15,8 @@ import {
 	TmplAstSwitchBlock,
 	TmplAstDeferredBlock,
 	TmplAstForLoopBlock,
-	TmplAstElement
+	TmplAstElement,
+	KeyedRead
 } from '@angular/compiler';
 
 import { ParserInterface } from './parser.interface.js';
@@ -193,6 +194,19 @@ export class PipeParser implements ParserInterface {
 
 		if (ast instanceof Call) {
 			return this.getTranslatablesFromAsts(ast.args);
+		}
+
+		// immediately accessed static object or array - the angular parser bundles this as "KeyedRead", where:
+		// { 'a': 1, 'b': 2 }[ 'a' ];
+		//                     ^^^ <- keyedRead.key
+		// ^^^^^^^^^^^^^^^^^^ <- keyedRead.receiver
+		//
+		// html examples:
+		// - { key1: 'value1' | translate, key2: 'value2' | translate }[key]
+		// - [ 'value1' | translate, 'value2' | translate ][key]
+		// - [ 'foo', 'bar' ][ 'key' | translate ]
+		if (ast instanceof KeyedRead) {
+			return this.getTranslatablesFromAsts([ast.receiver, ast.key]);
 		}
 
 		return [];

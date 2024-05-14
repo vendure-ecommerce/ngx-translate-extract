@@ -71,4 +71,20 @@ describe('MarkerParser', () => {
 		const keys = parser.extract(contents, componentFilename).keys();
 		expect(keys).to.deep.equal(['Hello world']);
 	});
+
+	it('should not break after bracket syntax casting', () => {
+		const contents = `
+		import { marker } from '@colsen1991/ngx-translate-extract-marker';
+		
+		marker('hello');
+		const input: unknown = 'hello';    
+		const myNiceVar1 = input as string;
+		marker('hello.after.as.syntax');
+			
+		const myNiceVar2 = <string>input;
+		marker('hello.after.bracket.syntax');
+		`;
+		const keys = parser.extract(contents, componentFilename).keys();
+		expect(keys).to.deep.equal(['hello', 'hello.after.as.syntax', 'hello.after.bracket.syntax']);
+	});
 });
