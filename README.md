@@ -115,9 +115,10 @@ Output
   --strip-prefix, -sp         Strip prefix from key                                                       [string]
 
 Extracted key value (defaults to empty string)
-  --key-as-default-value, -k     Use key as default value                                                [boolean]
-  --null-as-default-value, -n    Use null as default value                                               [boolean]
-  --string-as-default-value, -d  Use string as default value                                              [string]
+  --key-as-default-value, -k           Use key as default value                                          [boolean]
+  --key-as-initial-default-value, -ki  Use key as initial default value                                  [boolean]
+  --null-as-default-value, -n          Use null as default value                                         [boolean]
+  --string-as-default-value, -d        Use string as default value                                        [string]
 
 Options:
   --version, -v  Show version number                                                                     [boolean]

@@ -11,6 +11,7 @@ import { FunctionParser } from '../parsers/function.parser.js';
 import { PostProcessorInterface } from '../post-processors/post-processor.interface.js';
 import { SortByKeyPostProcessor } from '../post-processors/sort-by-key.post-processor.js';
 import { KeyAsDefaultValuePostProcessor } from '../post-processors/key-as-default-value.post-processor.js';
+import { KeyAsInitialDefaultValuePostProcessor } from '../post-processors/key-as-initial-default-value.post-processor.js';
 import { NullAsDefaultValuePostProcessor } from '../post-processors/null-as-default-value.post-processor.js';
 import { StringAsDefaultValuePostProcessor } from '../post-processors/string-as-default-value.post-processor.js';
 import { PurgeObsoleteKeysPostProcessor } from '../post-processors/purge-obsolete-keys.post-processor.js';
@@ -99,19 +100,25 @@ const cli = await y
 		alias: 'k',
 		describe: 'Use key as default value',
 		type: 'boolean',
-		conflicts: ['null-as-default-value', 'string-as-default-value']
+		conflicts: ['key-as-initial-default-value', 'null-as-default-value', 'string-as-default-value']
+	})
+	.option('key-as-initial-default-value', {
+		alias: 'ki',
+		describe: 'Use key as initial default value',
+		type: 'boolean',
+		conflicts: ['key-as-default-value', 'null-as-default-value', 'string-as-default-value']
 	})
 	.option('null-as-default-value', {
 		alias: 'n',
 		describe: 'Use null as default value',
 		type: 'boolean',
-		conflicts: ['key-as-default-value', 'string-as-default-value']
+		conflicts: ['key-as-default-value', 'key-as-initial-default-value', 'string-as-default-value']
 	})
 	.option('string-as-default-value', {
 		alias: 'd',
 		describe: 'Use string as default value',
 		type: 'string',
-		conflicts: ['null-as-default-value', 'key-as-default-value']
+		conflicts: ['null-as-default-value', 'key-as-default-value', 'key-as-initial-default-value']
 	})
 	.option('strip-prefix', {
 		alias: 'sp',
@@ -119,8 +126,9 @@ const cli = await y
 		type: 'string'
 	})
 	.group(['format', 'format-indentation', 'sort', 'clean', 'replace', 'strip-prefix'], 'Output')
-	.group(['key-as-default-value', 'null-as-default-value', 'string-as-default-value'], 'Extracted key value (defaults to empty string)')
+	.group(['key-as-default-value', 'key-as-initial-default-value', 'null-as-default-value', 'string-as-default-value'], 'Extracted key value (defaults to empty string)')
 	.conflicts('key-as-default-value', 'null-as-default-value')
+	.conflicts('key-as-initial-default-value', 'null-as-default-value')
 	.example('$0 -i ./src-a/ -i ./src-b/ -o strings.json', 'Extract (ts, html) from multiple paths')
 	.example("$0 -i './{src-a,src-b}/' -o strings.json", 'Extract (ts, html) from multiple paths using brace expansion')
 	.example('$0 -i ./src/ -o ./i18n/da.json -o ./i18n/en.json', 'Extract (ts, html) and save to da.json and en.json')
@@ -156,6 +164,8 @@ if (cli.clean) {
 }
 if (cli.keyAsDefaultValue) {
 	postProcessors.push(new KeyAsDefaultValuePostProcessor());
+} else if (cli.keyAsInitialDefaultValue) {
+	postProcessors.push(new KeyAsInitialDefaultValuePostProcessor());
 } else if (cli.nullAsDefaultValue) {
 	postProcessors.push(new NullAsDefaultValuePostProcessor());
 } else if (cli.stringAsDefaultValue) {
