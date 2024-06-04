@@ -73,6 +73,34 @@ describe('PipeParser', () => {
 				expect(keys).to.deep.equal(['Hello', 'World']);
 			});
 
+			it('should extract strings from object map', () => {
+				const contents = `{{ {
+					choice1: 'Hello' | ${translatePipeName},
+					choice2: 'World' | ${translatePipeName},
+				}[choice] }}`;
+				const keys = parser.extract(contents, templateFilename).keys();
+				expect(keys).to.deep.equal(['Hello', 'World']);
+			});
+
+			it('should extract strings from object map inside attribute', () => {
+				const contents = `
+					<span [attr]="{
+						choice1: 'Hello' | ${translatePipeName},
+						choice2: 'World' | ${translatePipeName}
+					}[choice]"></span>`;
+				const keys = parser.extract(contents, templateFilename).keys();
+				expect(keys).to.deep.equal(['Hello', 'World']);
+			});
+
+			it('should extract strings from KeyedRead.key', () => {
+				const contents = `{{ {
+					choice1: 'Foo',
+					choice2: 'Bar',
+				}[ 'choice' | ${translatePipeName} ] }}`;
+				const keys = parser.extract(contents, templateFilename).keys();
+				expect(keys).to.deep.equal(['choice']);
+			});
+
 			it('should extract strings from object', () => {
 				const contents = `{{ { foo: 'Hello' | ${translatePipeName}, bar: ['World' | ${translatePipeName}], deep: { nested: { baz: 'Yes' | ${translatePipeName} } } } | json }}`;
 				const keys = parser.extract(contents, templateFilename).keys();

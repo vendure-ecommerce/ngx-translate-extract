@@ -1,5 +1,18 @@
 # Changelog
 
+## v9.2.0-next.0 (2024-03-08)
+
+This is a pre-release available as `@vendure/ngx-translate-extract@next`. Due to some significant refactors to internals,
+we are releasing a pre-release version to allow for testing before the final release.
+
+It contains the following changes:
+
+- Support finding translations pipe in KeyedRead nodes ([#47](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/47))
+- Fix marker function parsing when used after bracket syntax casting expression ([#45](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/45))
+- Add key-as-initial-default-value flag ([#49](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/49))
+- Add support for extraction of translation keys from function expressions ([#46](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/46))
+
+
 ## v9.1.1 (2024-03-08)
 
 - Fix TranslateService not resolved when injected with readonly keyword ([#39](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/39))

@@ -547,4 +547,67 @@ describe('ServiceParser', () => {
 		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal([]);
 	});
+
+	describe('function expressions', () => {
+		it('should extract from arrow function expression', () => {
+			const contents = `
+			export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+				const translateService = inject(TranslateService);
+				const router = inject(Router);
+	
+				translateService.instant('translation.key');
+	
+				const nestedFunction = () => {
+					translateService.instant('translation.key.from.nested.function');
+				}
+			};
+			`;
+			const keys = parser.extract(contents, componentFilename)?.keys();
+			expect(keys).to.deep.equal(['translation.key', 'translation.key.from.nested.function']);
+		});
+
+		it('should extract from function expression', () => {
+			const contents = `
+			export const errorInterceptor: HttpInterceptorFn = function(req, next) {
+				const translateService = inject(TranslateService);
+				const router = inject(Router);
+	
+				translateService.instant('translation.key')
+	
+				const nestedFunction = function() {
+					translateService.instant('translation.key.from.nested.function');
+				}
+			};
+			`;
+			const keys = parser.extract(contents, componentFilename)?.keys();
+			expect(keys).to.deep.equal(['translation.key', 'translation.key.from.nested.function']);
+		});
+
+		it("should extract strings from TranslateService's get(), instant() and stream() method", () => {
+			const contents = `
+			export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+				const translate = inject(TranslateService);
+	
+				translate.get('get.translation.key')
+				translate.instant('instant.translation.key')
+				translate.stream('stream.translation.key')
+			};
+			`;
+			const keys = parser.extract(contents, componentFilename)?.keys();
+			expect(keys).to.deep.equal(['get.translation.key', 'instant.translation.key', 'stream.translation.key']);
+		});
+
+		it('should not extract chained function calls', () => {
+			const contents = `
+			export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+				const translate = inject(TranslateService);
+	
+				const strings = ['a', 'b', 'c'];
+				strings.map(string => translate.instant(string)).join(', ');
+			};
+			`;
+			const keys = parser.extract(contents, componentFilename)?.keys();
+			expect(keys).to.deep.equal([]);
+		});
+	});
 });
