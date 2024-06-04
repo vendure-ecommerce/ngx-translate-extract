@@ -88,6 +88,16 @@ If you want to use spaces instead, you can do the following:
 ngx-translate-extract --input ./src --output ./src/i18n/en.json --format-indentation ' '
 ```
 
+### Sorting
+
+Extracted keys are by default not sorted. You can enable sorting by using the `--sort` or `-s` flag.
+
+If sorting is enabled, the keys will be sorted using the default variant sort sensitivity. Other sort sensitivity options are also available using the `--sort-sensitivity` or `-s` flag:
+- `base`: Strings that differ in base letters are unequal. For example `a !== b`, `a === á`, `a === A`
+- `accent`: Strings that differ in base letters and accents are unequal. For example `a !== b`, `a !== á`, `a === A`
+- `case`: Strings that differ in base letters or casing are unequal. For example `a !== b`, `a === á`, `a !== A`
+- `variant`: Strings that differ in base letters, accents, or casing are unequal. For example `a !== b`, `a !== á`, `a !== A`
+
 ### Marker function
 
 If you want to extract strings that are not passed directly to `NgxTranslate.TranslateService`'s
@@ -110,7 +120,7 @@ Output
   --format, -f                Format        [string] [choices: "json", "namespaced-json", "pot"] [default: "json"]
   --format-indentation, --fi  Format indentation (JSON/Namedspaced JSON)                  [string] [default: "\t"]
   --sort, -s                  Sort strings in alphabetical order                                         [boolean]
-  --sort-sensitivity, -ss     Sensitivity when sorting strings 										     [string]
+  --sort-sensitivity, -ss     Sensitivity when sorting strings (only when sort is enabled)				 [string]
   --clean, -c                 Remove obsolete strings after merge                                        [boolean]
   --replace, -r               Replace the contents of output file if it exists (Merges by default)       [boolean]
   --strip-prefix, -sp         Strip prefix from key                                                       [string]

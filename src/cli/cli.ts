@@ -82,7 +82,7 @@ const cli = await y
 	})
 	.option('sort-sensitivity', {
 		alias: 'ss',
-		describe: 'Sort sensitivitiy of strings',
+		describe: 'Sort sensitivitiy of strings (only to be used when sorting)',
 		type: 'string',
 		choices: ['base', 'accent', 'case', 'variant'],
 		default: undefined
