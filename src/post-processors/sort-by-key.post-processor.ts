@@ -4,6 +4,8 @@ import { PostProcessorInterface } from './post-processor.interface.js';
 export class SortByKeyPostProcessor implements PostProcessorInterface {
 	public name: string = 'SortByKey';
 
+	// More information on sort sensitivity: https://tc39.es/ecma402/#sec-collator-comparestrings
+	// Passing undefined will be treated as 'variant' by default: https://tc39.es/ecma402/#sec-intl.collator
 	public sortSensitivity: 'base' | 'accent' | 'case' | 'variant' | undefined = undefined;
 
 	constructor(sortSensitivity: string | undefined) {
