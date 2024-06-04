@@ -92,7 +92,7 @@ ngx-translate-extract --input ./src --output ./src/i18n/en.json --format-indenta
 
 Extracted keys are by default not sorted. You can enable sorting by using the `--sort` or `-s` flag.
 
-If sorting is enabled, the keys will be sorted using the default variant sort sensitivity. Other sort sensitivity options are also available using the `--sort-sensitivity` or `-s` flag:
+If sorting is enabled, the keys will be sorted using the default variant sort sensitivity. Other sort sensitivity options are also available using the `--sort-sensitivity` or `-ss` flag:
 - `base`: Strings that differ in base letters are unequal. For example `a !== b`, `a === á`, `a === A`
 - `accent`: Strings that differ in base letters and accents are unequal. For example `a !== b`, `a !== á`, `a === A`
 - `case`: Strings that differ in base letters or casing are unequal. For example `a !== b`, `a === á`, `a !== A`
