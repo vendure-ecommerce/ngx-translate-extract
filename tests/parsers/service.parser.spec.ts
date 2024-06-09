@@ -548,6 +548,29 @@ describe('ServiceParser', () => {
 		expect(keys).to.deep.equal([]);
 	});
 
+	it('should not break after bracket syntax casting', () => {
+		const contents = `
+			@Component({ })
+			export class AppComponent {
+				@Input()
+			    set color(value: unknown) {
+					const newValue = <string>value;
+				    this._color = value;
+				    
+					this._translateService.instant('hello.from.input.setter');
+			    }
+				_color: unknown;
+
+				constructor(protected _translateService: TranslateService) { }
+
+				method() {
+					this._translateService.instant('hello.from.method');
+				}
+		`;
+		const keys = parser.extract(contents, componentFilename)?.keys();
+		expect(keys).to.deep.equal(['hello.from.input.setter', 'hello.from.method']);
+	});
+
 	describe('function expressions', () => {
 		it('should extract from arrow function expression', () => {
 			const contents = `

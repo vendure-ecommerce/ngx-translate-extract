@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import { ClassDeclaration, CallExpression, SourceFile } from 'typescript';
 import { resolveSync } from 'tsconfig';
 import JSON5 from 'json5';
-import { tsquery } from '@phenomnomnominal/tsquery';
 
 import { ParserInterface } from './parser.interface.js';
 import { TranslationCollection } from '../utils/translation.collection.js';
@@ -19,7 +18,8 @@ import {
 	getSuperClassName,
 	getImportPath,
 	findFunctionExpressions,
-	findVariableNameByInjectType
+	findVariableNameByInjectType,
+	getAST
 } from '../utils/ast-helpers.js';
 
 const TRANSLATE_SERVICE_TYPE_REFERENCE = 'TranslateService';
@@ -29,7 +29,7 @@ export class ServiceParser implements ParserInterface {
 	private static propertyMap = new Map<string, string[]>();
 
 	public extract(source: string, filePath: string): TranslationCollection | null {
-		const sourceFile = tsquery.ast(source, filePath);
+		const sourceFile = getAST(source, filePath);
 		const classDeclarations = findClassDeclarations(sourceFile);
 		const functionDeclarations = findFunctionExpressions(sourceFile);
 
@@ -141,7 +141,7 @@ export class ServiceParser implements ParserInterface {
 		const allSuperClassPropertyNames: string[] = [];
 		potentialSuperFiles.forEach((file) => {
 			const superClassFileContent = fs.readFileSync(file, 'utf8');
-			const superClassAst = tsquery.ast(superClassFileContent, file);
+			const superClassAst = getAST(superClassFileContent, file);
 			const superClassDeclarations = findClassDeclarations(superClassAst, superClassName);
 			const superClassPropertyNames = superClassDeclarations
 				.flatMap((superClassDeclaration) => findClassPropertiesByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE));

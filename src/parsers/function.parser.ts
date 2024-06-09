@@ -1,8 +1,6 @@
-import { tsquery } from '@phenomnomnominal/tsquery';
-
 import { ParserInterface } from './parser.interface.js';
 import { TranslationCollection } from '../utils/translation.collection.js';
-import { getStringsFromExpression, findSimpleCallExpressions } from '../utils/ast-helpers.js';
+import { getStringsFromExpression, findSimpleCallExpressions, getAST } from '../utils/ast-helpers.js';
 import pkg from 'typescript';
 const { isIdentifier } = pkg;
 
@@ -10,7 +8,7 @@ export class FunctionParser implements ParserInterface {
 	constructor(private fnName: string) {}
 
 	public extract(source: string, filePath: string): TranslationCollection | null {
-		const sourceFile = tsquery.ast(source, filePath);
+		const sourceFile = getAST(source, filePath);
 
 		let collection: TranslationCollection = new TranslationCollection();
 

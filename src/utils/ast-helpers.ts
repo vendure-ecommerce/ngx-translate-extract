@@ -1,4 +1,5 @@
-import { tsquery } from '@phenomnomnominal/tsquery';
+import { extname } from 'node:path';
+import { ScriptKind, tsquery } from '@phenomnomnominal/tsquery';
 import pkg, {
 	Node,
 	NamedImports,
@@ -7,10 +8,23 @@ import pkg, {
 	ConstructorDeclaration,
 	CallExpression,
 	Expression,
-	PropertyAccessExpression,
-	StringLiteral
+	StringLiteral,
+	SourceFile
 } from 'typescript';
 const { SyntaxKind, isStringLiteralLike, isArrayLiteralExpression, isBinaryExpression, isConditionalExpression } = pkg;
+
+export function getAST(source: string, fileName = ''): SourceFile {
+	const supportedScriptTypes: Record<string, ScriptKind> = {
+		'.js': ScriptKind.JS,
+		'.jsx': ScriptKind.JSX,
+		'.ts': ScriptKind.TS,
+		'.tsx': ScriptKind.TSX
+	};
+
+	const scriptKind = supportedScriptTypes[extname(fileName)] ?? ScriptKind.TS;
+
+	return tsquery.ast(source, fileName, scriptKind);
+}
 
 export function getNamedImports(node: Node, moduleName: string): NamedImports[] {
 	const query = `ImportDeclaration[moduleSpecifier.text=/${moduleName}/] NamedImports`;

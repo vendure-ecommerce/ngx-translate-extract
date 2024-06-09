@@ -58,4 +58,20 @@ describe('FunctionParser', () => {
 		expect(keys).to.deep.equal(['DYNAMIC_TRAD.val1', 'DYNAMIC_TRAD.val2']);
 	});
 
+	it('should not break after bracket syntax casting', () => {
+		const contents = `
+		export class AppModule {
+			constructor() {
+			    const input: unknown = 'hello';    
+			    const myNiceVar1 = input as string;
+			    MK('hello.after.as.syntax');
+			
+			    const myNiceVar2 = <string>input;
+			    MK('hello.after.bracket.syntax');
+			}
+		}
+		`;
+		const keys = parser.extract(contents, componentFilename).keys();
+		expect(keys).to.deep.equal([ 'hello.after.as.syntax', 'hello.after.bracket.syntax']);
+	});
 });
