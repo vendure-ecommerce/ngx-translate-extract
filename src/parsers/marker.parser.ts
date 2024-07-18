@@ -9,7 +9,7 @@ export class MarkerParser implements ParserInterface {
 	public extract(source: string, filePath: string): TranslationCollection | null {
 		const sourceFile = getAST(source, filePath);
 
-		const markerImportName = getNamedImportAlias(sourceFile, MARKER_MODULE_NAME, MARKER_IMPORT_NAME);
+		const markerImportName = getNamedImportAlias(sourceFile, MARKER_IMPORT_NAME, new RegExp(MARKER_MODULE_NAME));
 		if (!markerImportName) {
 			return null;
 		}

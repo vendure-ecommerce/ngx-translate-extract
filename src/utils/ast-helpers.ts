@@ -2,7 +2,6 @@ import { extname } from 'node:path';
 import { ScriptKind, tsquery } from '@phenomnomnominal/tsquery';
 import pkg, {
 	Node,
-	NamedImports,
 	Identifier,
 	ClassDeclaration,
 	ConstructorDeclaration,
@@ -26,26 +25,47 @@ export function getAST(source: string, fileName = ''): SourceFile {
 	return tsquery.ast(source, fileName, scriptKind);
 }
 
-export function getNamedImports(node: Node, moduleName: string): NamedImports[] {
-	const query = `ImportDeclaration[moduleSpecifier.text=/${moduleName}/] NamedImports`;
-	return tsquery<NamedImports>(node, query);
+/**
+ * Retrieves the identifiers for the given module name from import statements within the provided AST node.
+ */
+export function getNamedImportIdentifiers(node: Node, moduleName: string, importPath: string | RegExp): Identifier[] {
+	const importStringLiteralValue = importPath instanceof RegExp ? `value=${importPath.toString()}` : `value="${importPath}"`;
+
+	const query = `ImportDeclaration:has(StringLiteral[${importStringLiteralValue}]) ImportSpecifier:has(Identifier[name="${moduleName}"]) > Identifier`;
+
+	return tsquery<Identifier>(node, query);
 }
 
-export function getNamedImportAlias(node: Node, moduleName: string, importName: string): string | null {
-	const [namedImportNode] = getNamedImports(node, moduleName);
-	if (!namedImportNode) {
-		return null;
-	}
+/**
+ * Retrieves the original named import from a given node, import name, and import path.
+ *
+ * @example
+ * // Example import statement within a file
+ * import { Base as CoreBase } from './src/base';
+ *
+ * getNamedImport(node, 'Base', './src/base')     -> 'Base'
+ * getNamedImport(node, 'CoreBase', './src/base') -> 'Base'
+ */
+export function getNamedImport(node: Node, importName: string, importPath: string | RegExp): string | null {
+	const identifiers = getNamedImportIdentifiers(node, importName, importPath);
 
-	const query = `ImportSpecifier:has(Identifier[name="${importName}"]) > Identifier`;
-	const identifiers = tsquery<Identifier>(namedImportNode, query);
-	if (identifiers.length === 1) {
-		return identifiers[0].text;
-	}
-	if (identifiers.length > 1) {
-		return identifiers[identifiers.length - 1].text;
-	}
-	return null;
+	return identifiers.at(0)?.text ?? null;
+}
+
+/**
+ * Retrieves the alias of the named import from a given node, import name, and import path.
+ *
+ * @example
+ * // Example import statement within a file
+ * import { Base as CoreBase } from './src/base';
+ *
+ * getNamedImport(node, 'Base', './src/base')     -> 'CoreBase'
+ * getNamedImport(node, 'CoreBase', './src/base') -> 'CoreBase'
+ */
+export function getNamedImportAlias(node: Node, importName: string, importPath: string | RegExp): string | null {
+	const identifiers = getNamedImportIdentifiers(node, importName, importPath);
+
+	return identifiers.at(-1)?.text ?? null;
 }
 
 export function findClassDeclarations(node: Node, name: string = null): ClassDeclaration[] {

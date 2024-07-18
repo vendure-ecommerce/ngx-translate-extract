@@ -19,7 +19,8 @@ import {
 	getImportPath,
 	findFunctionExpressions,
 	findVariableNameByInjectType,
-	getAST
+	getAST,
+	getNamedImport
 } from '../utils/ast-helpers.js';
 
 const TRANSLATE_SERVICE_TYPE_REFERENCE = 'TranslateService';
@@ -86,17 +87,20 @@ export class ServiceParser implements ParserInterface {
 	}
 
 	private findParentClassProperties(classDeclaration: ClassDeclaration, ast: SourceFile): string[] {
-		const superClassName = getSuperClassName(classDeclaration);
-		if (!superClassName) {
+		const superClassNameOrAlias = getSuperClassName(classDeclaration);
+		if (!superClassNameOrAlias) {
 			return [];
 		}
-		const importPath = getImportPath(ast, superClassName);
+
+		const importPath = getImportPath(ast, superClassNameOrAlias);
 		if (!importPath) {
 			// parent class must be in the same file and will be handled automatically, so we can
 			// skip it here
 			return [];
 		}
 
+		// Resolve the actual name of the superclass from the named import
+		const superClassName = getNamedImport(ast, superClassNameOrAlias, importPath);
 		const currDir = path.join(path.dirname(ast.fileName), '/');
 
 		const key = `${currDir}|${importPath}`;

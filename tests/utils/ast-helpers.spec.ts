@@ -2,7 +2,7 @@ import { ScriptKind, tsquery } from '@phenomnomnominal/tsquery';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { LanguageVariant } from 'typescript';
 
-import { getAST } from '../../src/utils/ast-helpers';
+import { getAST, getNamedImport, getNamedImportAlias } from '../../src/utils/ast-helpers';
 
 describe('getAST()', () => {
 	const tsqueryAstSpy = vi.spyOn(tsquery, 'ast');
@@ -69,5 +69,101 @@ describe('getAST()', () => {
 
 		expect(tsqueryAstSpy).toHaveBeenCalledWith(source, '', ScriptKind.TS);
 		expect(result.languageVariant).toBe(LanguageVariant.Standard);
+	});
+});
+
+describe('getNamedImport()', () => {
+	describe('with a normal import', () => {
+		const node = tsquery.ast(`
+			import { Base } from './src/base';
+
+			export class Test extends CoreBase {
+				public constructor() {
+					super();
+					this.translate.instant("test");
+				}
+			}
+		`);
+
+		it('should return the original class name when given exact import path', () => {
+			expect(getNamedImport(node, 'CoreBase', './src/base')).to.equal(null);
+			expect(getNamedImport(node, 'Base', './src/base')).to.equal('Base');
+		});
+
+		it('should return the original class name when given a regex pattern for the import path', () => {
+			expect(getNamedImport(node, 'CoreBase', new RegExp('base'))).to.equal(null);
+			expect(getNamedImport(node, 'Base', new RegExp('base'))).to.equal('Base');
+		});
+	});
+
+	describe('with an aliased import', () => {
+		const node = tsquery.ast(`
+			import { Base as CoreBase } from './src/base';
+
+			export class Test extends CoreBase {
+				public constructor() {
+					super();
+					this.translate.instant("test");
+				}
+			}
+		`);
+
+		it('should return the original class name when given an alias and exact import path', () => {
+			expect(getNamedImport(node, 'CoreBase', './src/base')).to.equal('Base');
+			expect(getNamedImport(node, 'Base', './src/base')).to.equal('Base');
+		});
+
+		it('should return the original class name when given an alias and a regex pattern for the import path', () => {
+			expect(getNamedImport(node, 'CoreBase', new RegExp('base'))).to.equal('Base');
+			expect(getNamedImport(node, 'Base', new RegExp('base'))).to.equal('Base');
+		});
+	});
+});
+
+describe('getNamedImportAlias()', () => {
+	describe('with a normal import', () => {
+		const node = tsquery.ast(`
+			import { Base } from './src/base';
+
+			export class Test extends CoreBase {
+				public constructor() {
+					super();
+					this.translate.instant("test");
+				}
+			}
+		`);
+
+		it('should return the original class name when given exact import path', () => {
+			expect(getNamedImportAlias(node, 'CoreBase', './src/base')).to.equal(null);
+			expect(getNamedImportAlias(node, 'Base', './src/base')).to.equal('Base');
+		});
+
+		it('should return the original class name when given a regex pattern for the import', () => {
+			expect(getNamedImportAlias(node, 'CoreBase', new RegExp('base'))).to.equal(null);
+			expect(getNamedImportAlias(node, 'Base', new RegExp('base'))).to.equal('Base');
+		});
+	});
+
+	describe('with an aliased import', () => {
+		const node = tsquery.ast(`
+			import { Base as CoreBase } from './src/base';
+
+			export class Test extends CoreBase {
+				public constructor() {
+					super();
+					this.translate.instant("test");
+				}
+			}
+		`);
+
+		it('should return the aliased class name when given an alias and exact import path', () => {
+			expect(getNamedImportAlias(node, 'CoreBase', './src/base')).to.equal('CoreBase');
+			expect(getNamedImportAlias(node, 'Base', './src/base')).to.equal('CoreBase');
+		});
+
+		it('should return the aliased class name when given an alias and a regex pattern for the import path', () => {
+			expect(getNamedImportAlias(node, 'CoreBase', new RegExp('base'))).to.equal('CoreBase');
+			expect(getNamedImportAlias(node, 'Base', new RegExp('base'))).to.equal('CoreBase');
+		});
 	});
 });

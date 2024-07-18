@@ -435,6 +435,31 @@ describe('ServiceParser', () => {
 		expect(keys).to.deep.equal(['test']);
 	});
 
+	it('should recognize the property from an aliased base class imported from a different file', () => {
+		const baseFileContent = `
+			export abstract class Base {
+				protected translate: TranslateService;
+			}
+		`;
+
+		const testFileContent = `
+			import { Base as CoreBase } from './src/base';
+
+			export class Test extends CoreBase {
+				public constructor() {
+					super();
+					this.translate.instant("test");
+				}
+			}
+		`;
+
+		fs.mkdirSync(path.join(tempDir, 'src'), { recursive: true });
+		fs.writeFileSync(path.join(tempDir, 'src', 'base.ts'), baseFileContent);
+
+		const keys = parser.extract(testFileContent, path.join(tempDir, 'test.ts'))?.keys();
+		expect(keys).to.deep.equal(['test']);
+	});
+
 	it('should work with getters in base classes', () => {
 		const file_contents_base = `
 			export abstract class Base {
