@@ -314,6 +314,22 @@ describe('ServiceParser', () => {
 		expect(keys).to.deep.equal(['Hello World']);
 	});
 
+	it('should extract strings when TranslateService is declared as a private property', () => {
+		const contents = `
+			export class MyComponent {
+				readonly #translate: TranslateService;
+				public constructor(translateService: TranslateService) {
+					this.#translate = translateService;
+				}
+				public test() {
+					this.#translate.instant('Hello World');
+				}
+			}
+		`;
+		const keys = parser.extract(contents, componentFilename)?.keys();
+		expect(keys).to.deep.equal(['Hello World']);
+	});
+
 	it('should extract strings when TranslateService is injected using the inject function ', () => {
 		const contents = `
 			export class MyComponent {
@@ -326,6 +342,23 @@ describe('ServiceParser', () => {
 		`;
 		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Hello World']);
+	});
+
+	it('should locate TranslateService when it is a JavaScript native private property', () => {
+		const contents = `
+			@Component({})
+			export class MyComponent {
+			    readonly #translate = inject(TranslateService);
+				
+				public test() {
+					this.#translate.get('get.works');
+					this.#translate.stream('stream.works');
+					this.#translate.instant('instant.works');
+				}
+			}
+		`;
+		const keys = parser.extract(contents, componentFilename)?.keys();
+		expect(keys).to.deep.equal(['get.works', 'stream.works', 'instant.works']);
 	});
 
 	it('should extract strings passed to TranslateServices methods only', () => {
