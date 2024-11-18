@@ -349,7 +349,7 @@ describe('ServiceParser', () => {
 			@Component({})
 			export class MyComponent {
 			    readonly #translate = inject(TranslateService);
-				
+
 				public test() {
 					this.#translate.get('get.works');
 					this.#translate.stream('stream.works');
@@ -614,7 +614,7 @@ describe('ServiceParser', () => {
 			    set color(value: unknown) {
 					const newValue = <string>value;
 				    this._color = value;
-				    
+
 					this._translateService.instant('hello.from.input.setter');
 			    }
 				_color: unknown;
@@ -635,9 +635,9 @@ describe('ServiceParser', () => {
 			export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 				const translateService = inject(TranslateService);
 				const router = inject(Router);
-	
+
 				translateService.instant('translation.key');
-	
+
 				const nestedFunction = () => {
 					translateService.instant('translation.key.from.nested.function');
 				}
@@ -652,9 +652,9 @@ describe('ServiceParser', () => {
 			export const errorInterceptor: HttpInterceptorFn = function(req, next) {
 				const translateService = inject(TranslateService);
 				const router = inject(Router);
-	
+
 				translateService.instant('translation.key')
-	
+
 				const nestedFunction = function() {
 					translateService.instant('translation.key.from.nested.function');
 				}
@@ -668,7 +668,7 @@ describe('ServiceParser', () => {
 			const contents = `
 			export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 				const translate = inject(TranslateService);
-	
+
 				translate.get('get.translation.key')
 				translate.instant('instant.translation.key')
 				translate.stream('stream.translation.key')
@@ -682,13 +682,110 @@ describe('ServiceParser', () => {
 			const contents = `
 			export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 				const translate = inject(TranslateService);
-	
+
 				const strings = ['a', 'b', 'c'];
 				strings.map(string => translate.instant(string)).join(', ');
 			};
 			`;
 			const keys = parser.extract(contents, componentFilename)?.keys();
 			expect(keys).to.deep.equal([]);
+		});
+
+		it('should extract from a route title resolver', () => {
+			const contents = `
+				export const ROUTES: Route[] = [
+					{
+						path: 'component-a',
+						loadComponent: () => import('./path/to/a/component').then(m => m.Component),
+						title: (): string => {
+							const translateService = inject(TranslateService);
+							return translateService.instant('a.component.title');
+						}
+					},
+					{
+						path: 'component-b',
+						component: AComponent,
+						title: (): string => {
+							const translateService = inject(TranslateService);
+							return translateService.instant('b.component.title');
+						}
+					},
+					{
+						path: 'component-c',
+						component: CComponent,
+						title: function(): string {
+							const translateService = inject(TranslateService);
+							return translateService.instant('c.component.title');
+						}
+					}
+				];
+			`;
+			const keys = parser.extract(contents, componentFilename)?.keys();
+			expect(keys).to.deep.equal(['a.component.title', 'b.component.title', 'c.component.title']);
+		})
+
+		it('should extract keys from a `ResolveFn`', () => {
+			const contents = `
+				const routes: Routes = [
+					{
+						path: 'component',
+						title: 'Wrapper component',
+						component: WrapperComponent,
+						children: [
+							{
+								path: 'child-a',
+								title: resolvedChildATitle,
+								component: ChildAComponent,
+							},
+							{
+								path: 'child-b',
+								title: 'child b',
+								component: ChildBComponent,
+							},
+						],
+					},
+				];
+				const resolvedChildATitle: ResolveFn<string> = () => {
+					const translateService = inject(TranslateService);
+					return Promise.resolve(translateService.instant('child.a.title'));
+				}
+			`;
+			const keys = parser.extract(contents, componentFilename)?.keys();
+			expect(keys).to.deep.equal(['child.a.title']);
+		});
+
+		it('should extract keys from deeply nested routes', () => {
+			const contents = `
+				const routes: Routes = [
+					{
+						path: 'component',
+						title: 'Wrapper component',
+						component: WrapperComponent,
+						children: [
+							{
+								path: 'child-a',
+								title: (): string => {
+									const translateService = inject(TranslateService);
+									return translateService.instant('child.a.title');
+								},
+								children: [
+									{
+										path: 'grandchild-a1',
+										title: (): string => {
+											const translateService = inject(TranslateService);
+											return translateService.instant('grandchild.a1.title');
+										},
+										component: GrandchildA1Component
+									},
+								]
+							}
+						]
+					}
+				];
+  			`;
+
+			const keys = parser.extract(contents, componentFilename)?.keys();
+			expect(keys).to.deep.equal(['child.a.title', 'grandchild.a1.title']);
 		});
 	});
 });

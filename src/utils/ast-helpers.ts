@@ -81,7 +81,7 @@ export function findClassDeclarations(node: Node, name: string = null): ClassDec
 }
 
 export function findFunctionExpressions(node: Node) {
-	return tsquery(node, 'VariableDeclaration > ArrowFunction, VariableDeclaration > FunctionExpression');
+	return tsquery(node, 'VariableDeclaration ArrowFunction, VariableDeclaration FunctionExpression');
 }
 
 export function getSuperClassName(node: Node): string | null {
