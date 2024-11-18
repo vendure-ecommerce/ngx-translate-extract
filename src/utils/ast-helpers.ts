@@ -10,11 +10,21 @@ import pkg, {
 	StringLiteral,
 	SourceFile,
 	PropertyDeclaration,
-	PropertyAccessExpression,
-	isPropertyAccessExpression,
-	isCallExpression
+	PropertyAccessExpression
 } from 'typescript';
-const { SyntaxKind, isStringLiteralLike, isArrayLiteralExpression, isBinaryExpression, isConditionalExpression } = pkg;
+
+// Importing non-type members from 'typescript' this way to prevent runtime errors such as:
+// `SyntaxError: Named export 'isCallExpression' not found. The requested module 'typescript' is a CommonJS module,
+//  which may not support all module.exports as named exports.`
+const {
+	isArrayLiteralExpression,
+	isBinaryExpression,
+	isCallExpression,
+	isConditionalExpression,
+	isPropertyAccessExpression,
+	isStringLiteralLike,
+	SyntaxKind
+} = pkg;
 
 export function getAST(source: string, fileName = ''): SourceFile {
 	const supportedScriptTypes: Record<string, ScriptKind> = {
