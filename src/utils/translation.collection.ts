@@ -1,3 +1,5 @@
+import { normalizeFilePath } from './fs-helpers.js';
+
 export interface TranslationType {
 	[key: string]: TranslationInterface;
 }
@@ -18,8 +20,7 @@ export class TranslationCollection {
 		const translation = this.values[key]
 			? {...this.values[key]}
 			: {value: val, sourceFiles: []};
-		translation.sourceFiles.push(sourceFile);
-
+		translation.sourceFiles.push(normalizeFilePath(sourceFile));
 		return new TranslationCollection({...this.values, [key]: translation});
 	}
 
@@ -27,7 +28,7 @@ export class TranslationCollection {
 		const values = keys.reduce(
 			(results, key) => ({
 				...results,
-				[key]: <TranslationInterface>{value: '', sourceFiles: [sourceFile]}
+				[key]: <TranslationInterface>{value: '', sourceFiles: [normalizeFilePath(sourceFile)]}
 			}),
 			{} as TranslationType
 		);
