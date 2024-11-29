@@ -1,10 +1,10 @@
-import { CompilerInterface } from './compiler.interface.js';
+import { CompilerInterface, CompilerOptions } from './compiler.interface.js';
 import { JsonCompiler } from './json.compiler.js';
 import { NamespacedJsonCompiler } from './namespaced-json.compiler.js';
 import { PoCompiler } from './po.compiler.js';
 
 export class CompilerFactory {
-	public static create(format: string, options?: {}): CompilerInterface {
+	public static create(format: string, options?: CompilerOptions): CompilerInterface {
 		switch (format) {
 			case 'pot':
 				return new PoCompiler(options);

@@ -63,4 +63,13 @@ describe.concurrent('CLI Integration Tests', () => {
 
 		expect(extracted).toMatchSnapshot();
 	});
+
+	test('extracts translation keys to a .po file without file location comments', async ({ expect }) => {
+		const OUTPUT_FILE = createUniqueFileName('strings.po');
+		await execAsync(`node ${CLI_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_FILE} --format=pot --no-po-source-locations`);
+
+		const extracted = await readFile(OUTPUT_FILE, { encoding: 'utf8' });
+
+		expect(extracted).toMatchSnapshot();
+	});
 });

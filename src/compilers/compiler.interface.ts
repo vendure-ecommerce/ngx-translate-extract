@@ -1,5 +1,10 @@
 import { TranslationCollection } from '../utils/translation.collection.js';
 
+export interface CompilerOptions {
+	indentation?: string;
+	poSourceLocation?: boolean;
+}
+
 export interface CompilerInterface {
 	extension: string;
 
