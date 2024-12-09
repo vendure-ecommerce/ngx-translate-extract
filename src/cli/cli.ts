@@ -88,6 +88,11 @@ const cli = await y
 		choices: ['base', 'accent', 'case', 'variant'],
 		default: undefined
 	})
+	.option('po-source-locations', {
+		describe: 'Include file location comments in .po files',
+		type: 'boolean',
+		default: true,
+	})
 	.option('clean', {
 		alias: 'c',
 		describe: 'Remove obsolete strings after merge',
@@ -132,7 +137,7 @@ const cli = await y
 		describe: 'Strip a prefix from the extracted key',
 		type: 'string'
 	})
-	.group(['format', 'format-indentation', 'sort', 'sort-sensitivity', 'clean', 'replace', 'strip-prefix'], 'Output')
+	.group(['format', 'format-indentation', 'sort', 'sort-sensitivity', 'clean', 'replace', 'strip-prefix', 'no-po-source-locations'], 'Output')
 	.group(['key-as-default-value', 'key-as-initial-default-value', 'null-as-default-value', 'string-as-default-value'], 'Extracted key value (defaults to empty string)')
 	.conflicts('key-as-default-value', 'null-as-default-value')
 	.conflicts('key-as-initial-default-value', 'null-as-default-value')
@@ -190,7 +195,8 @@ extractTask.setPostProcessors(postProcessors);
 
 // Compiler
 const compiler: CompilerInterface = CompilerFactory.create(cli.format, {
-	indentation: cli.formatIndentation
+	indentation: cli.formatIndentation,
+	poSourceLocation: cli.poSourceLocations,
 });
 extractTask.setCompiler(compiler);
 

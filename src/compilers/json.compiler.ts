@@ -1,4 +1,4 @@
-import { CompilerInterface } from './compiler.interface.js';
+import { CompilerInterface, CompilerOptions } from './compiler.interface.js';
 import {TranslationCollection, TranslationInterface, TranslationType} from '../utils/translation.collection.js';
 import { stripBOM } from '../utils/utils.js';
 
@@ -9,7 +9,7 @@ export class JsonCompiler implements CompilerInterface {
 
 	public extension: string = 'json';
 
-	public constructor(options?: any) {
+	constructor(options?: CompilerOptions) {
 		if (options && typeof options.indentation !== 'undefined') {
 			this.indentation = options.indentation;
 		}

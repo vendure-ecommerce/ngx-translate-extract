@@ -1,0 +1,142 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CLI Integration Tests > extracts translation keys to a .json file 1`] = `
+"{
+	"translate-service.comp.welcome": "",
+	"translate-service.comp.description": "",
+	"translate-service.comp.details": "",
+	"translate-service.comp.show-more-label": "",
+	"translate-service.comp.show-less-label": "",
+	"pipe.comp.welcome": "",
+	"pipe.comp.description": "",
+	"directive.comp.welcome": "",
+	"directive.comp.description": "",
+	"private-translate-service.comp.welcome": "",
+	"private-translate-service.comp.description": "",
+	"ngx-translate.marker.dashboard.title": "",
+	"ngx-translate.marker.dashboard.description": "",
+	"marker.dashboard.title": "",
+	"marker.dashboard.description": ""
+}"
+`;
+
+exports[`CLI Integration Tests > extracts translation keys to a .po file 1`] = `
+"msgid ""
+msgstr ""
+"mime-version: 1.0\\n"
+"Content-Type: text/plain; charset=utf-8\\n"
+"Content-Transfer-Encoding: 8bit\\n"
+
+#: ngx-translate-extract/tests/cli/fixtures/translate-service.component.fixture.ts
+msgid "translate-service.comp.welcome"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/translate-service.component.fixture.ts
+msgid "translate-service.comp.description"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/translate-service.component.fixture.ts
+msgid "translate-service.comp.details"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/translate-service.component.fixture.ts
+msgid "translate-service.comp.show-more-label"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/translate-service.component.fixture.ts
+msgid "translate-service.comp.show-less-label"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/translate-pipe.component.fixture.ts
+msgid "pipe.comp.welcome"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/translate-pipe.component.fixture.ts
+msgid "pipe.comp.description"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/translate-directive.component.fixture.ts
+msgid "directive.comp.welcome"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/translate-directive.component.fixture.ts
+msgid "directive.comp.description"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/private-translate-service.component.fixture.ts
+msgid "private-translate-service.comp.welcome"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/private-translate-service.component.fixture.ts
+msgid "private-translate-service.comp.description"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/ngx-translate.marker.fixture.ts
+msgid "ngx-translate.marker.dashboard.title"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/ngx-translate.marker.fixture.ts
+msgid "ngx-translate.marker.dashboard.description"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/marker.fixture.ts
+msgid "marker.dashboard.title"
+msgstr ""
+
+#: ngx-translate-extract/tests/cli/fixtures/marker.fixture.ts
+msgid "marker.dashboard.description"
+msgstr """
+`;
+
+exports[`CLI Integration Tests > extracts translation keys to a .po file without file location comments 1`] = `
+"msgid ""
+msgstr ""
+"mime-version: 1.0\\n"
+"Content-Type: text/plain; charset=utf-8\\n"
+"Content-Transfer-Encoding: 8bit\\n"
+
+msgid "translate-service.comp.welcome"
+msgstr ""
+
+msgid "translate-service.comp.description"
+msgstr ""
+
+msgid "translate-service.comp.details"
+msgstr ""
+
+msgid "translate-service.comp.show-more-label"
+msgstr ""
+
+msgid "translate-service.comp.show-less-label"
+msgstr ""
+
+msgid "pipe.comp.welcome"
+msgstr ""
+
+msgid "pipe.comp.description"
+msgstr ""
+
+msgid "directive.comp.welcome"
+msgstr ""
+
+msgid "directive.comp.description"
+msgstr ""
+
+msgid "private-translate-service.comp.welcome"
+msgstr ""
+
+msgid "private-translate-service.comp.description"
+msgstr ""
+
+msgid "ngx-translate.marker.dashboard.title"
+msgstr ""
+
+msgid "ngx-translate.marker.dashboard.description"
+msgstr ""
+
+msgid "marker.dashboard.title"
+msgstr ""
+
+msgid "marker.dashboard.description"
+msgstr """
+`;

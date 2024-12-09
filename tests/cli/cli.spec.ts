@@ -1,42 +1,75 @@
 import { exec } from 'node:child_process';
+import { readdir, readFile, rm } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readFileSync, rmSync } from 'node:fs';
+import { promisify } from 'node:util';
 
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterAll, beforeAll, describe, test } from 'vitest';
 
+const execAsync = promisify(exec);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const REPOSITORY_ROOT = resolve(__dirname, '../..');
-const CLI_PATH = resolve(REPOSITORY_ROOT, 'src/cli/cli.ts');
 const FIXTURES_PATH = resolve(REPOSITORY_ROOT, 'tests/cli/fixtures/');
-const OUTPUT_PATH = resolve(REPOSITORY_ROOT, 'tests/cli/fixtures/tmp');
-const OUTPUT_FILE = resolve(OUTPUT_PATH, 'strings.json');
+const TMP_PATH = resolve(REPOSITORY_ROOT, 'tests/cli/tmp');
+const CLI_PATH = resolve(TMP_PATH, 'dist/cli/cli.js');
 
-describe('CLI Integration Tests', () => {
-	afterEach(() => {
-		rmSync(OUTPUT_PATH, { recursive: true, force: true });
+let nextFileId = 0;
+const createUniqueFileName = (fileName: string) => resolve(TMP_PATH, `${nextFileId++}-${fileName}`);
+
+describe.concurrent('CLI Integration Tests', () => {
+	beforeAll(async () => {
+		try {
+			await execAsync(`npm run build -- --outDir ${TMP_PATH}/dist`);
+		} catch (err) {
+			console.error('Error during build in beforeAll:', err);
+			throw err;
+		}
 	});
 
-	test('extracts translation keys from a component', () =>
-		new Promise<void>((done) => {
-			exec(`npx tsx ${CLI_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_FILE}`, (error, stdout) => {
-				expect(error).toBeNull();
-				expect(stdout.trim()).toStrictEqual(expect.stringContaining('Extracting:'));
-				expect(stdout.trim()).toStrictEqual(expect.stringContaining('simple.component.fixture.ts'));
-				expect(stdout.trim()).toStrictEqual(expect.stringContaining('Found 2 strings.'));
-				expect(stdout.trim()).toStrictEqual(expect.stringContaining('Saving:'));
-				expect(stdout.trim()).toStrictEqual(expect.stringContaining('strings.json'));
-				expect(stdout.trim()).toStrictEqual(expect.stringContaining('Done.'));
+	afterAll(async () => {
+		await rm(TMP_PATH, { recursive: true });
+	});
 
-				const extracted = JSON.parse(readFileSync(OUTPUT_FILE, { encoding: 'utf8' }));
-				const extractedKeys = Object.keys(extracted);
+	test('shows the expected output when extracting', async ({expect}) => {
+		const OUTPUT_FILE = createUniqueFileName('strings.json');
+		const fixtureFiles = await readdir(FIXTURES_PATH);
+		const { stdout } = await execAsync(`node ${CLI_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_FILE} --format=json`);
 
-				expect(Object.keys(extracted).length).toBe(2);
-				expect(extractedKeys[0]).toBe('home.welcome');
-				expect(extractedKeys[1]).toBe('home.description');
+		expect(stdout).toContain('Extracting:');
+		fixtureFiles.forEach(file => expect(stdout).toContain(file));
 
-				done();
-			});
-		}));
+		expect(stdout).toContain('Found 15 strings.');
+		expect(stdout).toContain('Saving:');
+
+		expect(stdout).toContain(OUTPUT_FILE);
+		expect(stdout).toContain('Done.');
+	})
+
+	test('extracts translation keys to a .json file', async ({ expect }) => {
+		const OUTPUT_FILE = createUniqueFileName('strings.json');
+		await execAsync(`node ${CLI_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_FILE} --format=json`);
+
+		const extracted = await readFile(OUTPUT_FILE, { encoding: 'utf8' });
+
+		expect(extracted).toMatchSnapshot();
+	});
+
+	test('extracts translation keys to a .po file', async ({ expect }) => {
+		const OUTPUT_FILE = createUniqueFileName('strings.po');
+		await execAsync(`node ${CLI_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_FILE} --format=pot`);
+
+		const extracted = await readFile(OUTPUT_FILE, { encoding: 'utf8' });
+
+		expect(extracted).toMatchSnapshot();
+	});
+
+	test('extracts translation keys to a .po file without file location comments', async ({ expect }) => {
+		const OUTPUT_FILE = createUniqueFileName('strings.po');
+		await execAsync(`node ${CLI_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_FILE} --format=pot --no-po-source-locations`);
+
+		const extracted = await readFile(OUTPUT_FILE, { encoding: 'utf8' });
+
+		expect(extracted).toMatchSnapshot();
+	});
 });

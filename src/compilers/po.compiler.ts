@@ -1,4 +1,4 @@
-import { CompilerInterface } from './compiler.interface.js';
+import { CompilerInterface, CompilerOptions } from './compiler.interface.js';
 import {TranslationCollection, TranslationInterface, TranslationType} from '../utils/translation.collection.js';
 
 import pkg from 'gettext-parser';
@@ -12,7 +12,12 @@ export class PoCompiler implements CompilerInterface {
 	 */
 	public domain: string = '';
 
-	public constructor(options?: any) {}
+	/** Whether to include file location comments. **/
+	private readonly includeSources: boolean = true;
+
+	constructor(options?: CompilerOptions) {
+		this.includeSources = options?.poSourceLocation ?? true;
+	}
 
 	public compile(collection: TranslationCollection): string {
 		const data = {
@@ -27,16 +32,17 @@ export class PoCompiler implements CompilerInterface {
 					.reduce(
 						(translations, key) => {
 							const entry: TranslationInterface = collection.get(key);
+							const comments = this.includeSources ? {reference: entry.sourceFiles?.join('\n')} : undefined;
 							return {
 								...translations,
 								[key]: {
 									msgid: key,
 									msgstr: entry.value,
-									comments: {reference: entry.sourceFiles?.join('\n')}
+									comments: comments
 								}
 							};
 						},
-						{} as any
+						{}
 					)
 			}
 		};
