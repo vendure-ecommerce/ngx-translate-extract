@@ -76,7 +76,7 @@ export class TranslationCollection {
 	}
 
 	public has(key: string): boolean {
-		return this.values.hasOwnProperty(key);
+		return Object.hasOwn(this.values, key);
 	}
 
 	public get(key: string): TranslationInterface {

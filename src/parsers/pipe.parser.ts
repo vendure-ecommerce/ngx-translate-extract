@@ -5,7 +5,6 @@ import {
 	BindingPipe,
 	LiteralPrimitive,
 	Conditional,
-	TmplAstTextAttribute,
 	Binary,
 	LiteralMap,
 	LiteralArray,
@@ -16,7 +15,8 @@ import {
 	TmplAstDeferredBlock,
 	TmplAstForLoopBlock,
 	TmplAstElement,
-	KeyedRead
+	KeyedRead,
+	ASTWithSource,
 } from '@angular/compiler';
 
 import { ParserInterface } from './parser.interface.js';
@@ -25,7 +25,7 @@ import { isPathAngularComponent, extractComponentInlineTemplate } from '../utils
 
 export const TRANSLATE_PIPE_NAMES = ['translate', 'marker'];
 
-function traverseAstNodes<RESULT extends unknown, NODE extends TmplAstNode | TmplAstElement>(
+function traverseAstNodes<RESULT, NODE extends TmplAstNode | TmplAstElement>(
 	nodes: (NODE | null)[],
 	visitor: (node: NODE) => RESULT[],
 	accumulator: RESULT[] = []
@@ -39,7 +39,7 @@ function traverseAstNodes<RESULT extends unknown, NODE extends TmplAstNode | Tmp
 	return accumulator;
 }
 
-function traverseAstNode<RESULT extends unknown, NODE extends TmplAstNode | TmplAstElement>(
+function traverseAstNode<RESULT, NODE extends TmplAstNode | TmplAstElement>(
 	node: NODE,
 	visitor: (node: NODE) => RESULT[],
 	accumulator: RESULT[] = []
@@ -89,37 +89,38 @@ export class PipeParser implements ParserInterface {
 		const pipes = traverseAstNodes(nodes, (node) => this.findPipesInNode(node));
 
 		pipes.forEach((pipe) => {
-			this.parseTranslationKeysFromPipe(pipe).forEach((key: string) => {
+			this.parseTranslationKeysFromPipe(pipe).forEach((key) => {
 				collection = collection.add(key, '', filePath);
 			});
 		});
 		return collection;
 	}
 
-	protected findPipesInNode(node: any): BindingPipe[] {
+	protected findPipesInNode(node: TmplAstNode): BindingPipe[] {
 		const ret: BindingPipe[] = [];
 
-		if (node?.value?.ast) {
+		if ('value' in node && node.value instanceof ASTWithSource) {
 			ret.push(...this.getTranslatablesFromAst(node.value.ast));
 		}
 
-		if (node?.attributes) {
-			const translateableAttributes = node.attributes.filter((attr: TmplAstTextAttribute) => TRANSLATE_PIPE_NAMES.includes(attr.name));
-			ret.push(...ret, ...translateableAttributes);
+		if ('attributes' in node && Array.isArray(node.attributes)) {
+			const translatableAttributes = node.attributes.filter((attr) => TRANSLATE_PIPE_NAMES.includes(attr.name));
+			ret.push(...ret, ...translatableAttributes);
 		}
 
-		if (node?.inputs) {
-			node.inputs.forEach((input: any) => {
+		if ('inputs' in node && Array.isArray(node.inputs)) {
+			node.inputs.forEach((input) => {
 				// <element [attrib]="'identifier' | translate">
-				if (input?.value?.ast) {
+				if (input.value instanceof ASTWithSource) {
 					ret.push(...this.getTranslatablesFromAst(input.value.ast));
 				}
 			});
 		}
-		if (node?.templateAttrs) {
-			node.templateAttrs.forEach((attr: any) => {
+
+		if ('templateAttrs' in node && Array.isArray(node.templateAttrs)) {
+			node.templateAttrs.forEach((attr) => {
 				// <element *directive="'identifier' | translate">
-				if (attr?.value?.ast) {
+				if (attr.value instanceof ASTWithSource) {
 					ret.push(...this.getTranslatablesFromAst(attr.value.ast));
 				}
 			});
@@ -128,17 +129,15 @@ export class PipeParser implements ParserInterface {
 		return ret;
 	}
 
-	protected parseTranslationKeysFromPipe(pipeContent: BindingPipe | LiteralPrimitive | Conditional): string[] {
+	protected parseTranslationKeysFromPipe(pipeContent: AST): string[] {
 		const ret: string[] = [];
 		if (pipeContent instanceof LiteralPrimitive) {
-			ret.push(pipeContent.value);
+			ret.push(`${pipeContent.value}`);
 		} else if (pipeContent instanceof Conditional) {
-			const trueExp: LiteralPrimitive | Conditional = pipeContent.trueExp as any;
-			ret.push(...this.parseTranslationKeysFromPipe(trueExp));
-			const falseExp: LiteralPrimitive | Conditional = pipeContent.falseExp as any;
-			ret.push(...this.parseTranslationKeysFromPipe(falseExp));
+			ret.push(...this.parseTranslationKeysFromPipe(pipeContent.trueExp));
+			ret.push(...this.parseTranslationKeysFromPipe(pipeContent.falseExp));
 		} else if (pipeContent instanceof BindingPipe) {
-			ret.push(...this.parseTranslationKeysFromPipe(pipeContent.exp as any));
+			ret.push(...this.parseTranslationKeysFromPipe(pipeContent.exp));
 		}
 		return ret;
 	}

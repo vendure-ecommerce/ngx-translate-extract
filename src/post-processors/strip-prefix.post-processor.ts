@@ -10,7 +10,7 @@ export class StripPrefixPostProcessor implements PostProcessorInterface {
 
 	constructor(private options: Options) {}
 
-	public process(draft: TranslationCollection, extracted: TranslationCollection, existing: TranslationCollection): TranslationCollection {
+	public process(draft: TranslationCollection): TranslationCollection {
 		return draft.stripKeyPrefix(this.options.prefix);
 	}
 }

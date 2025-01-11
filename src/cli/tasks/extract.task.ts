@@ -180,8 +180,8 @@ export class ExtractTask implements TaskInterface {
 		return globSync(sanitizedPattern).filter((filePath) => fs.statSync(filePath).isFile());
 	}
 
-	protected out(...args: any[]): void {
-		console.log.apply(this, arguments);
+	protected out(...args: unknown[]): void {
+		console.log.apply(this, args);
 	}
 
 	protected printEnabledParsers(): void {

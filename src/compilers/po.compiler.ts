@@ -55,7 +55,7 @@ export class PoCompiler implements CompilerInterface {
 
 		const parsedPo = po.parse(contents, 'utf8');
 
-		if (!parsedPo.translations.hasOwnProperty(this.domain)) {
+		if (!Object.hasOwn(parsedPo.translations, this.domain)) {
 			return collection;
 		}
 

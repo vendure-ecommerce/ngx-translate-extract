@@ -217,10 +217,10 @@ export class DirectiveParser implements ParserInterface {
 	 */
 	protected isBlockNode(node: Node): node is BlockNode {
 		return (
-			node.hasOwnProperty('nameSpan') &&
-			node.hasOwnProperty('sourceSpan') &&
-			node.hasOwnProperty('startSourceSpan') &&
-			node.hasOwnProperty('endSourceSpan')
+			Object.hasOwn(node, 'nameSpan') &&
+			Object.hasOwn(node, 'sourceSpan') &&
+			Object.hasOwn(node, 'startSourceSpan') &&
+			Object.hasOwn(node, 'endSourceSpan') 
 		);
 	}
 

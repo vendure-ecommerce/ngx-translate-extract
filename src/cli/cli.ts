@@ -16,7 +16,7 @@ import { NullAsDefaultValuePostProcessor } from '../post-processors/null-as-defa
 import { StringAsDefaultValuePostProcessor } from '../post-processors/string-as-default-value.post-processor.js';
 import { PurgeObsoleteKeysPostProcessor } from '../post-processors/purge-obsolete-keys.post-processor.js';
 import { StripPrefixPostProcessor } from '../post-processors/strip-prefix.post-processor.js';
-import { CompilerInterface } from '../compilers/compiler.interface.js';
+import { CompilerInterface, CompilerType } from '../compilers/compiler.interface.js';
 import { CompilerFactory } from '../compilers/compiler.factory.js';
 import { normalizePaths } from '../utils/fs-helpers.js';
 import { FileCache } from '../cache/file-cache.js';
@@ -28,7 +28,6 @@ const y = yargs().option('patterns', {
 	describe: 'Default patterns',
 	type: 'array',
 	default: ['/**/*.html', '/**/*.ts'],
-	// eslint-disable-next-line id-denylist
 	string: true,
 	hidden: true
 });
@@ -61,9 +60,8 @@ const cli = await y
 	.option('format', {
 		alias: 'f',
 		describe: 'Format',
-		default: 'json',
-		type: 'string',
-		choices: ['json', 'namespaced-json', 'pot']
+		default: CompilerType.Json,
+		choices: [CompilerType.Json, CompilerType.NamespacedJson, CompilerType.Pot]
 	})
 	.option('format-indentation', {
 		alias: 'fi',

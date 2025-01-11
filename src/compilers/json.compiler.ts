@@ -20,7 +20,7 @@ export class JsonCompiler implements CompilerInterface {
 	}
 
 	public parse(contents: string): TranslationCollection {
-		let values: any = JSON.parse(stripBOM(contents));
+		let values = JSON.parse(stripBOM(contents));
 		if (this.isNamespacedJsonFormat(values)) {
 			values = flatten(values);
 		}
@@ -29,7 +29,15 @@ export class JsonCompiler implements CompilerInterface {
 		return new TranslationCollection(newValues);
 	}
 
-	protected isNamespacedJsonFormat(values: any): boolean {
+	protected isNamespacedJsonFormat(values: unknown): boolean {
+		if (!isObject(values)) {
+			return false;
+		}
+
 		return Object.keys(values).some((key) => typeof values[key] === 'object');
 	}
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
 }

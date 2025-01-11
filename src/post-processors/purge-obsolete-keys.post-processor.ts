@@ -4,7 +4,7 @@ import { PostProcessorInterface } from './post-processor.interface.js';
 export class PurgeObsoleteKeysPostProcessor implements PostProcessorInterface {
 	public name: string = 'PurgeObsoleteKeys';
 
-	public process(draft: TranslationCollection, extracted: TranslationCollection, existing: TranslationCollection): TranslationCollection {
+	public process(draft: TranslationCollection, extracted: TranslationCollection): TranslationCollection {
 		return draft.intersect(extracted);
 	}
 }

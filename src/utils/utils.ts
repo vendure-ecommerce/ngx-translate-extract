@@ -9,7 +9,8 @@ export function isPathAngularComponent(path: string): boolean {
  * Extract inline template from a component
  */
 export function extractComponentInlineTemplate(contents: string): string {
-	const regExp: RegExp = /template\s*:\s*(["'`])([^\1]*?)\1/;
+	const regExp = /template\s*:\s*(["'`])([\s\S]*?)\1/;
+
 	const match = regExp.exec(contents);
 	if (match !== null) {
 		return match[2];

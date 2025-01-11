@@ -16,7 +16,7 @@ export class SortByKeyPostProcessor implements PostProcessorInterface {
 		}
 	}
 
-	public process(draft: TranslationCollection, extracted: TranslationCollection, existing: TranslationCollection): TranslationCollection {
+	public process(draft: TranslationCollection): TranslationCollection {
 		const compareFn = this.sortSensitivity ? new Intl.Collator('en', { sensitivity: this.sortSensitivity }).compare : undefined;
 		return draft.sort(compareFn);
 	}
