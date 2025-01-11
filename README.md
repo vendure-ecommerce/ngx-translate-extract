@@ -102,7 +102,29 @@ If sorting is enabled, the keys will be sorted using the default variant sort se
 
 If you want to extract strings that are not passed directly to `NgxTranslate.TranslateService`'s
 `get()`/`instant()`/`stream()` methods, or its `translate` pipe or directive, you can wrap them
-in a marker function/pipe/directive to let `ngx-translate-extract` know you want to extract them.
+in the marker function from `@ngx-translate/core` to let `ngx-translate-extract` know you want to extract them.
+
+**Example:** _Using the marker function_
+```typescript
+// your-component.ts
+import { Component, inject } from '@angular/core';
+import { TranslateService, _ } from '@ngx-translate/core';
+
+const welcomeMessage = _('app.your-component.welcome');
+
+@Component({
+  selector: 'your-component',
+  template: `<p>{{ message }}</p>`,
+})
+export class YourComponent {
+  private readonly translate = inject(TranslateService);
+  
+  readonly message = this.translate.instant(welcomeMessage);
+}
+```
+
+For more advanced use cases where a marker pipe or directive is required, or if you are using a version of `ngx-translate`
+prior to v16, you can use the following library:
 
 ```bash
 npm install @colsen1991/ngx-translate-extract-marker
