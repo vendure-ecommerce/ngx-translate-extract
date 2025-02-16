@@ -131,7 +131,8 @@ msgstr ""
 
 #: ngx-translate-extract/tests/cli/fixtures/marker.fixture.ts
 msgid "marker.dashboard.description"
-msgstr """
+msgstr ""
+"
 `;
 
 exports[`CLI Integration Tests > extracts translation keys to a .po file without file location comments 1`] = `
@@ -184,5 +185,6 @@ msgid "marker.dashboard.title"
 msgstr ""
 
 msgid "marker.dashboard.description"
-msgstr """
+msgstr ""
+"
 `;

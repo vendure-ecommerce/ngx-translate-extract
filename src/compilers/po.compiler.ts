@@ -1,8 +1,7 @@
-import { CompilerInterface, CompilerOptions } from './compiler.interface.js';
-import {TranslationCollection, TranslationInterface, TranslationType} from '../utils/translation.collection.js';
+import { po } from 'gettext-parser';
 
-import pkg from 'gettext-parser';
-const { po } = pkg;
+import { CompilerInterface, CompilerOptions } from './compiler.interface.js';
+import { TranslationCollection, TranslationInterface, TranslationType } from '../utils/translation.collection.js';
 
 export class PoCompiler implements CompilerInterface {
 	public extension: string = 'po';
@@ -47,25 +46,30 @@ export class PoCompiler implements CompilerInterface {
 			}
 		};
 
-		return po.compile(data).toString('utf8');
+		return po.compile(data, {}).toString('utf8');
 	}
 
 	public parse(contents: string): TranslationCollection {
-		const collection = new TranslationCollection();
+		const parsedPo = po.parse(contents, { defaultCharset: 'utf8' });
+		const poTranslations = parsedPo.translations?.[this.domain];
 
-		const parsedPo = po.parse(contents, 'utf8');
-
-		if (!Object.hasOwn(parsedPo.translations, this.domain)) {
-			return collection;
+		if (!poTranslations) {
+			return new TranslationCollection();
 		}
 
-		const values = Object.keys(parsedPo.translations[this.domain])
-			.filter((key) => key.length > 0)
-			.reduce((result, key) => ({
-				...result,
-				[key]: {value: parsedPo.translations[this.domain][key].msgstr.pop(), sourceFiles: parsedPo.translations[this.domain][key].comments?.reference?.split('\n') || []}
-			}), {} as TranslationType);
+		const translationEntries = Object.entries(poTranslations)
+		const convertedTranslations: TranslationType = {};
+		for (const [msgid, message] of translationEntries) {
+			if (msgid === this.domain) {
+				continue;
+			}
 
-		return new TranslationCollection(values);
+			convertedTranslations[msgid] = {
+				value: message.msgstr.at(-1),
+				sourceFiles: message.comments?.reference?.split('\n') || []
+			};
+		}
+
+		return new TranslationCollection(convertedTranslations);
 	}
 }
