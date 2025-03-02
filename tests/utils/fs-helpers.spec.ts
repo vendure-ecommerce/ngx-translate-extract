@@ -2,7 +2,7 @@ import * as path from 'node:path';
 
 import { afterEach, beforeEach, describe, it, expect, vi, MockInstance } from 'vitest';
 
-import { normalizeFilePath } from '../../src/utils/fs-helpers';
+import { expandPattern, normalizeFilePath } from '../../src/utils/fs-helpers';
 
 vi.mock('node:path', async (importOriginal) => ({
 	...(await importOriginal<typeof import('node:path')>()),
@@ -10,7 +10,7 @@ vi.mock('node:path', async (importOriginal) => ({
 }));
 
 describe('normalizeFilePath', () => {
-	let processCwdMock: MockInstance<[], string>;
+	let processCwdMock: MockInstance<() => string>;
 
 	beforeEach(() => {
 		processCwdMock = vi.spyOn(process, 'cwd').mockReturnValue('/home/user/project');
@@ -40,5 +40,22 @@ describe('normalizeFilePath', () => {
 
 	it('should return the base name of the cwd for cwd itself', () => {
 		expect(normalizeFilePath('/home/user/project')).toBe('project');
+	});
+});
+
+describe('expandPattern', () => {
+	it('should expand a simple pattern with default separator', () => {
+		const result = expandPattern('dir/{en,fr,de}.json');
+		expect(result).toEqual(['dir/en.json', 'dir/fr.json', 'dir/de.json']);
+	});
+
+	it('should expand a pattern with Windows-style separator', () => {
+		vi.spyOn(path, 'sep', 'get').mockReturnValue('\\');
+		const result = expandPattern('C:\\Users\\User\\dir\\{en,fr,de}.json');
+		expect(result).toEqual([
+			'C:\\Users\\User\\dir\\en.json',
+			'C:\\Users\\User\\dir\\fr.json',
+			'C:\\Users\\User\\dir\\de.json',
+		]);
 	});
 });

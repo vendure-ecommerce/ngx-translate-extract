@@ -26,8 +26,22 @@ export function normalizeFilePath(filePath: string): string {
 	return filePath.replace(cwd, cwdBaseName).replaceAll(sep, posix.sep);
 }
 
+/**
+ * Expands a pattern with braces, handling Windows-style separators.
+ */
 export function expandPattern(pattern: string): string[] {
-	return braces(pattern, { expand: true, keepEscaping: true });
+	const isWindows = sep === '\\';
+
+	// Windows escaped separators can cause the brace "{" in the pattern to be also escaped and ignored by braces lib.
+	// For that reason we convert separators to posix for braces and then back to the original.
+	// For example, without replacing the separators the first case below is not parsed correctly:
+	// 'dir\\{en,fr}.json'        => ['dir\\{en,fr}.json'] // Pattern is ignored
+	// 'dir\\locale.{en,fr}.json' => ['dir\\locale.en.json', 'dir\\locale.fr.json'] // Pattern is recognised
+	const bracesCompatiblePattern = isWindows ? pattern.replaceAll(sep, posix.sep) : pattern;
+
+	const output = braces(bracesCompatiblePattern, { expand: true, keepEscaping: true });
+
+	return isWindows ? output.map((path) => path.replaceAll(posix.sep, sep)) : output;
 }
 
 export function normalizePaths(patterns: string[], defaultPatterns: string[] = []): string[] {

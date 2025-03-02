@@ -1,5 +1,5 @@
 import { exec } from 'node:child_process';
-import { readdir, readFile, rm } from 'node:fs/promises';
+import { access, readdir, readFile, rm } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -53,6 +53,17 @@ describe.concurrent('CLI Integration Tests', () => {
 		const extracted = await readFile(OUTPUT_FILE, { encoding: 'utf8' });
 
 		expect(extracted).toMatchSnapshot();
+	});
+
+	test('extracts translation keys to multiple files', async ({ expect, task }) => {
+		const OUTPUT_PATH = resolve(TMP_PATH, task.id);
+		const OUTPUT_PATTERN = resolve(OUTPUT_PATH, '{en,fr}.json');
+		const EXPECTED_EN_FILE = resolve(OUTPUT_PATH, 'en.json');
+		const EXPECTED_FR_FILE = resolve(OUTPUT_PATH, 'fr.json');
+
+		await execAsync(`node ${CLI_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_PATTERN} --format=json`);
+
+		await expect(Promise.all([access(EXPECTED_EN_FILE), access(EXPECTED_FR_FILE)])).resolves.not.toThrow();
 	});
 
 	test('extracts translation keys to a .po file', async ({ expect }) => {
