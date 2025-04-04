@@ -787,5 +787,15 @@ describe('ServiceParser', () => {
 			const keys = parser.extract(contents, componentFilename)?.keys();
 			expect(keys).to.deep.equal(['child.a.title', 'grandchild.a1.title']);
 		});
+
+		it('should extract strings when inline injection is used', () => {
+			const contents = `
+				export const getTitle = (): string => {
+					return inject(TranslateService).instant('translation.key');
+				}
+			`;
+			const keys = parser.extract(contents, componentFilename)?.keys();
+			expect(keys).to.deep.equal(['translation.key']);
+		});
 	});
 });

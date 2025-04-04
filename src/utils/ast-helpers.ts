@@ -142,7 +142,7 @@ export function findMethodCallExpressions(node: Node, propName: string, fnName: 
 
 	const fnNameRegex = functionNames.join('|');
 
-	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(PropertyAccessExpression:has(Identifier[name="${propName}"]):not(:has(ThisKeyword)))`;
+	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(PropertyAccessExpression:has(Identifier[name="${propName}"]):not(:has(ThisKeyword)), CallExpression:has(Identifier[name="inject"]))`;
 
 	return tsquery(node, query)
 		.filter((n) => functionNames.includes(n.getLastToken().getText()))
