@@ -1,5 +1,10 @@
 # Changelog
 
+## v9.4.1 (2025-06-27)
+
+- Fix parser not detecting `TranslateService` when used via inline-injection ([#74](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/74))
+- Fix issue where brace patterns were ignored due to escaped braces on Windows ([#72](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/72))
+
 ## v9.4.0 (2024-12-17)
 
 - Use relative paths in .po file source comments
