@@ -18,27 +18,27 @@
     "colorette": "^2.0.20",
     "flat": "^6.0.1",
     "gettext-parser": "^4.2.0",
-    "glob": "^10.4.2",
+    "glob": "^11.0.2",
     "json5": "^2.2.3",
     "tsconfig": "^7.0.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@angular/compiler": "^19.0.6",
-    "@eslint/js": "^9.18.0",
+    "@angular/compiler": "^20.0.0",
+    "@eslint/js": "^9.28.0",
     "@types/braces": "^3.0.5",
     "@types/gettext-parser": "^4.0.4",
-    "@types/node": "^18.19.70",
+    "@types/node": "^20.17.57",
     "@types/yargs": "^17.0.33",
-    "eslint": "^9.18.0",
+    "eslint": "^9.28.0",
     "prettier": "^3.4.2",
-    "typescript": "~5.7.3",
-    "typescript-eslint": "^8.19.1",
-    "vitest": "^2.1.8"
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.33.1",
+    "vitest": "^3.2.1"
   },
   "peerDependencies": {
-    "@angular/compiler": ">=17.0.0",
-    "typescript": ">=5.2.0"
+    "@angular/compiler": ">=20.0.0",
+    "typescript": ">=5.8.0"
   },
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -75,8 +75,8 @@
   },
   "homepage": "https://github.com/vendure-ecommerce/ngx-translate-extract",
   "engines": {
-    "node": ">=18.13.0",
-    "npm": ">=8"
+    "node": ">=20.19.0",
+    "npm": ">=10"
   },
   "config": {},
   "publishConfig": {
