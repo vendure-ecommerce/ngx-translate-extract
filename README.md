@@ -1,7 +1,7 @@
 # ngx-translate-extract
 
 [![npm](https://img.shields.io/npm/v/%40vendure%2Fngx-translate-extract)](https://www.npmjs.com/package/@vendure/ngx-translate-extract)
-[![build status](https://github.com/vendure-ecommerce/ngx-translate-extract/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/vuejs/core/actions/workflows/ci.yml)
+[![build status](https://github.com/vendure-ecommerce/ngx-translate-extract/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/vendure-ecommerce/ngx-translate-extract/actions/workflows/ci.yml)
 [![Download](https://img.shields.io/npm/dm/%40vendure%2Fngx-translate-extract)](https://www.npmjs.com/package/%40vendure%2Fngx-translate-extract)
 
 > Angular translations extractor (plugin for [@ngx-translate](https://github.com/ngx-translate/core))
