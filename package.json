@@ -18,23 +18,23 @@
     "colorette": "^2.0.20",
     "flat": "^6.0.1",
     "gettext-parser": "^4.2.0",
-    "glob": "^10.4.2",
+    "glob": "^10.4.5",
     "json5": "^2.2.3",
     "tsconfig": "^7.0.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@angular/compiler": "^19.0.6",
+    "@angular/compiler": "^19.2.14",
     "@eslint/js": "^9.18.0",
     "@types/braces": "^3.0.5",
     "@types/gettext-parser": "^4.0.4",
-    "@types/node": "^18.19.70",
+    "@types/node": "^18.19.113",
     "@types/yargs": "^17.0.33",
-    "eslint": "^9.18.0",
-    "prettier": "^3.4.2",
+    "eslint": "^9.30.0",
+    "prettier": "^3.6.2",
     "typescript": "~5.7.3",
-    "typescript-eslint": "^8.19.1",
-    "vitest": "^2.1.8"
+    "typescript-eslint": "^8.35.0",
+    "vitest": "^2.1.9"
   },
   "peerDependencies": {
     "@angular/compiler": ">=17.0.0",
