@@ -40,7 +40,6 @@
     "@angular/compiler": ">=17.0.0",
     "typescript": ">=5.2.0"
   },
-  "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
     "bin/",
@@ -48,12 +47,6 @@
   ],
   "bin": {
     "ngx-translate-extract": "bin/cli.js"
-  },
-  "prettier": {
-    "trailingComma": "none",
-    "printWidth": 145,
-    "useTabs": true,
-    "singleQuote": true
   },
   "repository": {
     "type": "git",
@@ -78,7 +71,6 @@
     "node": ">=18.13.0",
     "npm": ">=8"
   },
-  "config": {},
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   }
