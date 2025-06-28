@@ -55,6 +55,15 @@ describe.concurrent('CLI Integration Tests', () => {
 		expect(extracted).toMatchSnapshot();
 	});
 
+	test('extracts translation keys to a .json file with namespaced-json format', async ({ expect }) => {
+		const OUTPUT_FILE = createUniqueFileName('strings.json');
+		await execAsync(`node ${CLI_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_FILE} --format=namespaced-json`);
+
+		const extracted = await readFile(OUTPUT_FILE, { encoding: 'utf8' });
+
+		expect(extracted).toMatchSnapshot();
+	});
+
 	test('extracts translation keys to multiple files', async ({ expect, task }) => {
 		const OUTPUT_PATH = resolve(TMP_PATH, task.id);
 		const OUTPUT_PATTERN = resolve(OUTPUT_PATH, '{en,fr}.json');
