@@ -20,6 +20,52 @@ exports[`CLI Integration Tests > extracts translation keys to a .json file 1`] =
 }"
 `;
 
+exports[`CLI Integration Tests > extracts translation keys to a .json file with namespaced-json format 1`] = `
+"{
+	"translate-service": {
+		"comp": {
+			"welcome": "",
+			"description": "",
+			"details": "",
+			"show-more-label": "",
+			"show-less-label": ""
+		}
+	},
+	"pipe": {
+		"comp": {
+			"welcome": "",
+			"description": ""
+		}
+	},
+	"directive": {
+		"comp": {
+			"welcome": "",
+			"description": ""
+		}
+	},
+	"private-translate-service": {
+		"comp": {
+			"welcome": "",
+			"description": ""
+		}
+	},
+	"ngx-translate": {
+		"marker": {
+			"dashboard": {
+				"title": "",
+				"description": ""
+			}
+		}
+	},
+	"marker": {
+		"dashboard": {
+			"title": "",
+			"description": ""
+		}
+	}
+}"
+`;
+
 exports[`CLI Integration Tests > extracts translation keys to a .po file 1`] = `
 "msgid ""
 msgstr ""
