@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.4.2 (2025-06-30)
+
+- Prevent overwriting of existing translations in namespaced-json format ([#85](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/85))
+
 ## v9.4.1 (2025-06-27)
 
 - Fix parser not detecting `TranslateService` when used via inline-injection ([#74](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/74))
