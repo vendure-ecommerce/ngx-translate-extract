@@ -20,7 +20,7 @@ const createUniqueFileName = (fileName: string) => resolve(TMP_PATH, `${nextFile
 describe.concurrent('CLI Integration Tests', () => {
 	beforeAll(async () => {
 		try {
-			await execAsync(`npm run build -- --outDir ${TMP_PATH}/dist`);
+			await execAsync(`npm run build:dev -- --outDir ${TMP_PATH}/dist`);
 		} catch (err) {
 			console.error('Error during build in beforeAll:', err);
 			throw err;
