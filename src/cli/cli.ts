@@ -46,7 +46,7 @@ const cli = await y
 		default: [process.env.PWD],
 		type: 'array',
 		normalize: true,
-		required: true
+		demandOption: true
 	})
 	.coerce('input', (input: string[]) => normalizePaths(input, parsed.patterns))
 	.option('output', {
@@ -54,7 +54,7 @@ const cli = await y
 		describe: 'Paths where you would like to save extracted strings. You can use path expansion, glob patterns and multiple paths',
 		type: 'array',
 		normalize: true,
-		required: true
+		demandOption: true
 	})
 	.coerce('output', (output: string[]) => normalizePaths(output, parsed.patterns))
 	.option('format', {
