@@ -17,6 +17,7 @@ import {
 	TmplAstElement,
 	KeyedRead,
 	ASTWithSource,
+	ParenthesizedExpression,
 } from '@angular/compiler';
 
 import { ParserInterface } from './parser.interface.js';
@@ -138,6 +139,8 @@ export class PipeParser implements ParserInterface {
 			ret.push(...this.parseTranslationKeysFromPipe(pipeContent.falseExp));
 		} else if (pipeContent instanceof BindingPipe) {
 			ret.push(...this.parseTranslationKeysFromPipe(pipeContent.exp));
+		} else if (pipeContent instanceof ParenthesizedExpression) {
+			ret.push(...this.parseTranslationKeysFromPipe(pipeContent.expression));
 		}
 		return ret;
 	}
@@ -206,6 +209,10 @@ export class PipeParser implements ParserInterface {
 		// - [ 'foo', 'bar' ][ 'key' | translate ]
 		if (ast instanceof KeyedRead) {
 			return this.getTranslatablesFromAsts([ast.receiver, ast.key]);
+		}
+
+		if(ast instanceof ParenthesizedExpression) {
+			return this.getTranslatablesFromAsts([ast.expression]);
 		}
 
 		return [];

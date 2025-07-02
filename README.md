@@ -28,11 +28,12 @@ yarn add @vendure/ngx-translate-extract --dev
 
 Choose the version corresponding to your Angular version:
 
-| Angular    | ngx-translate-extract                                                                      |
-| ---------- | ------------------------------------------------------------------------------------------ |
-| >=17       | 9.x                                                                                        |
-| 13 – 16    | 8.x                                                                                        |
-| 8  – 12    | [@biesbjerg/ngx-translate-extract](https://github.com/biesbjerg/ngx-translate-extract) 7.x |
+| Angular | ngx-translate-extract                                                                      |
+|---------|--------------------------------------------------------------------------------------------|
+| >= 20   | 10.x                                                                                       |
+| 17 - 19 | 9.x                                                                                        |
+| 13 – 16 | 8.x                                                                                        |
+| 8  – 12 | [@biesbjerg/ngx-translate-extract](https://github.com/biesbjerg/ngx-translate-extract) 7.x |
 
 Add a script to your project's `package.json`:
 
