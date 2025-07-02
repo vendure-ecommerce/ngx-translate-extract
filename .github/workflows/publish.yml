@@ -1,10 +1,25 @@
 name: Publish Package to npmjs
 on:
   workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Type of release (release or prerelease)'
+        default: 'release'
+        type: string
+  push:
+    branches: [ 'master' ]
 
 jobs:
   build:
+    uses: ./.github/workflows/ci.yml
+  release:
+    if: |
+       github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'push' &&
+         (startsWith(github.event.head_commit.message, 'release:') ||
+         startsWith(github.event.head_commit.message, 'prerelease:')))
     runs-on: ubuntu-latest
+    needs: [build]
     permissions:
       contents: read
       id-token: write
@@ -16,9 +31,22 @@ jobs:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
       # Install  dependencies without modifying package-lock.json file
-      - run: npm ci
-      - run: npm run build
-      - run: npm publish ./dist
+      - name: Install deps
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish
+        if: ${{ (inputs.release_type == 'release') || (github.event.head_commit.message && startsWith(github.event.head_commit.message, 'release:')) }}
+        run: npm publish ./dist
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+
+      - name: Publish Next
+        if: ${{ (inputs.release_type == 'prerelease') || (github.event.head_commit.message && startsWith(github.event.head_commit.message, 'prerelease:')) }}
+        run: npm publish ./dist --tag next
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
