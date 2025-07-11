@@ -1,5 +1,16 @@
 # Changelog
 
+## v10.0.0 (2025-07-11)
+
+- Add support for Angular 20 ([#77](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/77))
+- Add trailing newline to `.po` output files to ensure POSIX compliance ([#70](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/70))
+
+**BREAKING CHANGES**
+
+- Minimum Angular version required is now 20.
+- Minimum Node.js version required is now v20.19.0 to align with Angular 20 requirements.
+- Minimum TypeScript version required is now v5.8 to align with Angular 20 requirements.
+
 ## v9.4.2 (2025-06-30)
 
 - Prevent overwriting of existing translations in namespaced-json format ([#85](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/85))
