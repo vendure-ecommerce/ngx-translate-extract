@@ -6,7 +6,7 @@
 
 > Angular translations extractor (plugin for [@ngx-translate](https://github.com/ngx-translate/core))
 
-> ✓ _Compatible with client-side rendering (CSR) and server-side rendering (SSR)_
+> ✓ _Compatible with server-side rendering (SSR/SSG)_
 
 Extract translatable (ngx-translate) strings and save as a JSON or Gettext pot file.
 Merges with existing strings if the output file already exists.
