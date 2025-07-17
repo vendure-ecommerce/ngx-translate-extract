@@ -304,6 +304,36 @@ describe('PipeParser', () => {
 		expect(keys).to.deep.equal([`Hello`, `World`]);
 	});
 
+	it('should extract key from translate pipe inside `AND` expressions', () => {
+		const singleCondition = `<div>{{ someProp() && 'translation.key' | translate }}</div>`;
+		const singleConditionKeys = parser.extract(singleCondition, templateFilename).keys();
+		expect(singleConditionKeys).to.deep.equal(['translation.key']);
+
+		const multipleConditions = `<div>{{ someProp() && anotherProp() && 'translation.key' | translate }}</div>`;
+		const multipleConditionKeys = parser.extract(multipleConditions, templateFilename).keys();
+		expect(multipleConditionKeys).to.deep.equal(['translation.key']);
+	});
+
+	it('should extract key from translate pipe inside `OR` expressions', () => {
+		const singleCondition = `<div>{{ someProp() || 'translation.key' | translate }}</div>`;
+		const singleConditionKeys = parser.extract(singleCondition, templateFilename).keys();
+		expect(singleConditionKeys).to.deep.equal(['translation.key']);
+
+		const multipleConditions = `<div>{{ someProp() || anotherProp() || 'translation.key' | translate }}</div>`;
+		const multipleConditionKeys = parser.extract(multipleConditions, templateFilename).keys();
+		expect(multipleConditionKeys).to.deep.equal(['translation.key']);
+	});
+
+	it('should extract key from translate pipe inside nullish coalescing expressions', () => {
+		const singleCondition = `<div>{{ someProp() ?? 'translation.key' | translate }}</div>`;
+		const singleConditionKeys = parser.extract(singleCondition, templateFilename).keys();
+		expect(singleConditionKeys).to.deep.equal(['translation.key']);
+
+		const multipleConditions = `<div>{{ someProp() ?? anotherProp() ?? 'translation.key' | translate }}</div>`;
+		const multipleConditionKeys = parser.extract(multipleConditions, templateFilename).keys();
+		expect(multipleConditionKeys).to.deep.equal(['translation.key']);
+	});
+
 	describe('Built-in control flow', () => {
 		it('should extract keys from elements inside an @if/@else block', () => {
 			const contents = `

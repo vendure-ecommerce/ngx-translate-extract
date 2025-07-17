@@ -141,6 +141,13 @@ export class PipeParser implements ParserInterface {
 			ret.push(...this.parseTranslationKeysFromPipe(pipeContent.exp));
 		} else if (pipeContent instanceof ParenthesizedExpression) {
 			ret.push(...this.parseTranslationKeysFromPipe(pipeContent.expression));
+		} else if (this.isLogicalOrNullishCoalescingExpression(pipeContent)) {
+			if (pipeContent.left instanceof LiteralPrimitive) {
+				ret.push(`${pipeContent.left.value}`);
+			}
+			if (pipeContent.right instanceof LiteralPrimitive) {
+				ret.push(`${pipeContent.right.value}`);
+			}
 		}
 		return ret;
 	}
@@ -228,5 +235,13 @@ export class PipeParser implements ParserInterface {
 
 	protected parseTemplate(template: string, path: string): TmplAstNode[] {
 		return parseTemplate(template, path).nodes;
+	}
+
+	/** Checks whether a Binary node uses a logical (&&, ||) or nullish coalescing (??) operator. */
+	protected isLogicalOrNullishCoalescingExpression(expr: unknown): expr is Binary {
+		return (
+			expr instanceof Binary &&
+			(expr.operation === '&&' || expr.operation === '||' || expr.operation === '??')
+		);
 	}
 }
