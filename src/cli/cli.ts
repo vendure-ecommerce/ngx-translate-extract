@@ -36,7 +36,7 @@ const parsed = await y.parse();
 
 const cli = await y
 	.usage('Extract strings from files for translation.\nUsage: $0 [options]')
-	.version(process.env.npm_package_version)
+	.version()
 	.alias('version', 'v')
 	.help('help')
 	.alias('help', 'h')
