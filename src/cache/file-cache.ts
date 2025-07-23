@@ -72,7 +72,7 @@ export class FileCache<RESULT extends object = object> implements CacheInterface
 	}
 
 	private getVersionHash(): string {
-		const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+		const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 		const packageJson = fs.readFileSync(path.join(projectRoot, 'package.json'), { encoding: 'utf-8' });
 
 		return getHash(packageJson);
