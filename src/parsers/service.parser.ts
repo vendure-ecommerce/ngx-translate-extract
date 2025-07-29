@@ -79,10 +79,12 @@ export class ServiceParser implements ParserInterface {
 	}
 
 	protected findPropertyCallExpressions(classDeclaration: ClassDeclaration, sourceFile: SourceFile): CallExpression[] {
-		const propNames = [
-			...findClassPropertiesByType(classDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE),
-			...this.findParentClassProperties(classDeclaration, sourceFile)
-		];
+		const propNames = findClassPropertiesByType(classDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
+
+		if (propNames.length === 0) {
+			propNames.push(...this.findParentClassProperties(classDeclaration, sourceFile));
+		}
+
 		return propNames.flatMap((name) => findPropertyCallExpressions(classDeclaration, name, TRANSLATE_SERVICE_METHOD_NAMES));
 	}
 
@@ -103,9 +105,9 @@ export class ServiceParser implements ParserInterface {
 		const superClassName = getNamedImport(ast, superClassNameOrAlias, importPath);
 		const currDir = path.join(path.dirname(ast.fileName), '/');
 
-		const key = `${currDir}|${importPath}`;
-		if (key in ServiceParser.propertyMap) {
-			return ServiceParser.propertyMap.get(key);
+		const cacheKey = `${currDir}|${importPath}`;
+		if (ServiceParser.propertyMap.has(cacheKey)) {
+			return ServiceParser.propertyMap.get(cacheKey);
 		}
 
 		let superClassPath: string;
@@ -150,7 +152,7 @@ export class ServiceParser implements ParserInterface {
 			const superClassPropertyNames = superClassDeclarations
 				.flatMap((superClassDeclaration) => findClassPropertiesByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE));
 			if (superClassPropertyNames.length > 0) {
-				ServiceParser.propertyMap.set(file, superClassPropertyNames);
+				ServiceParser.propertyMap.set(cacheKey, superClassPropertyNames);
 				allSuperClassPropertyNames.push(...superClassPropertyNames);
 			} else {
 				superClassDeclarations.forEach((declaration) =>
