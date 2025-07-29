@@ -1,5 +1,12 @@
 # Changelog
 
+## v10.0.1 (2025-07-29)
+
+- Avoid redundant property lookups on parent class in service parser ([#99](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/99))
+- Locate `package.json` in new location for the `--cache-file` option ([#96](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/96))
+- Fix version resolution for the `--version` option ([#97](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/97))
+- Fix parser not detecting keys when the `translate` pipe is used within logical expressions (`&&`, `||`, `??`) ([#94](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/94))
+
 ## v10.0.0 (2025-07-11)
 
 - Add support for Angular 20 ([#77](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/77))
