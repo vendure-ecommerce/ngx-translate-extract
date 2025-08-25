@@ -135,7 +135,13 @@ const cli = await y
 		describe: 'Strip a prefix from the extracted key',
 		type: 'string'
 	})
-	.group(['format', 'format-indentation', 'sort', 'sort-sensitivity', 'clean', 'replace', 'strip-prefix', 'po-source-locations'], 'Output')
+	.option('trailing-newline', {
+		alias: 'nl',
+		describe: 'Add a trailing newline to the output',
+		type: 'boolean',
+		default: false
+	})
+	.group(['format', 'format-indentation', 'sort', 'sort-sensitivity', 'clean', 'replace', 'strip-prefix', 'trailing-newline', 'po-source-locations'], 'Output')
 	.group(['key-as-default-value', 'key-as-initial-default-value', 'null-as-default-value', 'string-as-default-value'], 'Extracted key value (defaults to empty string)')
 	.conflicts('key-as-default-value', 'null-as-default-value')
 	.conflicts('key-as-initial-default-value', 'null-as-default-value')
@@ -194,6 +200,7 @@ extractTask.setPostProcessors(postProcessors);
 // Compiler
 const compiler: CompilerInterface = CompilerFactory.create(cli.format, {
 	indentation: cli.formatIndentation,
+	trailingNewline: cli.trailingNewline,
 	poSourceLocation: cli.poSourceLocations,
 });
 extractTask.setCompiler(compiler);

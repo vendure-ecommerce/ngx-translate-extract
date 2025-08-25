@@ -8,6 +8,7 @@ export enum CompilerType {
 
 export interface CompilerOptions {
 	indentation?: string;
+	trailingNewline?: boolean;
 	poSourceLocation?: boolean;
 }
 

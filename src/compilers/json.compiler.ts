@@ -6,6 +6,7 @@ import { flatten } from 'flat';
 
 export class JsonCompiler implements CompilerInterface {
 	public indentation: string = '\t';
+	public trailingNewline: boolean = false;
 
 	public extension: string = 'json';
 
@@ -13,10 +14,13 @@ export class JsonCompiler implements CompilerInterface {
 		if (options && typeof options.indentation !== 'undefined') {
 			this.indentation = options.indentation;
 		}
+		if (options && typeof options.trailingNewline !== 'undefined') {
+			this.trailingNewline = options.trailingNewline;
+		}
 	}
 
 	public compile(collection: TranslationCollection): string {
-		return JSON.stringify(collection.toKeyValueObject(), null, this.indentation);
+		return JSON.stringify(collection.toKeyValueObject(), null, this.indentation) + (this.trailingNewline ? '\n' : '');
 	}
 
 	public parse(contents: string): TranslationCollection {
