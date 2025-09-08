@@ -136,7 +136,6 @@ const cli = await y
 		type: 'string'
 	})
 	.option('trailing-newline', {
-		alias: 'nl',
 		describe: 'Add a trailing newline to the output',
 		type: 'boolean',
 		default: false
