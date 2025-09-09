@@ -91,6 +91,9 @@ export class PipeParser implements ParserInterface {
 
 		pipes.forEach((pipe) => {
 			this.parseTranslationKeysFromPipe(pipe).forEach((key) => {
+				if (key === '') {
+					return;
+				}
 				collection = collection.add(key, '', filePath);
 			});
 		});

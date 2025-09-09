@@ -334,6 +334,13 @@ describe('PipeParser', () => {
 		expect(multipleConditionKeys).to.deep.equal(['translation.key']);
 	});
 
+	it('should not extract empty strings as keys', () => {
+		const contents = `<div>{{ '' | translate }}</div>`;
+		const keys = parser.extract(contents, templateFilename).keys();
+
+		expect(keys).toEqual([]);
+	});
+
 	describe('Built-in control flow', () => {
 		it('should extract keys from elements inside an @if/@else block', () => {
 			const contents = `
