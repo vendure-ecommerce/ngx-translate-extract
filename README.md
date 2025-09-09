@@ -151,7 +151,7 @@ Output
   --clean, -c                 Remove obsolete strings after merge                                        [boolean]
   --replace, -r               Replace the contents of output file if it exists (Merges by default)       [boolean]
   --strip-prefix, -sp         Strip prefix from key                                                       [string]
-  --trailing-newline.         Add a trailing newline to the output.                                      [boolean]
+  --trailing-newline          Add a trailing newline to the output.                                      [boolean]
   --po-source-locations       Include file location comments in .po files                [boolean] [default: true]
 
 Extracted key value (defaults to empty string)
