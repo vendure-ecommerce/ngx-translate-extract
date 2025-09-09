@@ -170,6 +170,24 @@ describe('ServiceParser', () => {
 		expect(keys).to.deep.equal(['Hello', 'World']);
 	});
 
+	it('should NOT extract empty strings from the get()/instant()/stream() methods', () => {
+		const contents = `
+			@Component({ })
+			export class AppComponent {
+				public constructor(protected _translateService: TranslateService) { }
+				public test() {
+					this._translateService.get('');
+					this._translateService.instant('');
+					this._translateService.stream('');
+					this._translateService.get(['', '']);
+					this._translateService.instant(['', '']);
+					this._translateService.stream(['', '']);
+				}
+		`;
+		const keys = parser.extract(contents, componentFilename)?.keys();
+		expect(keys).to.deep.equal([]);
+	});
+
 	it('should not extract strings in get()/instant()/stream() methods of other services', () => {
 		const contents = `
 			@Component({ })

@@ -213,7 +213,7 @@ export function findPropertyCallExpressions(node: Node, prop: string, fnName: st
 }
 
 export function getStringsFromExpression(expression: Expression): string[] {
-	if (isStringLiteralLike(expression)) {
+	if (isStringLiteralLike(expression) && expression.text !== '') {
 		return [expression.text];
 	}
 
