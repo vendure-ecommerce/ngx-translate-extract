@@ -1,5 +1,10 @@
 # Changelog
 
+## v10.1.0 (2025-09-09)
+
+- Add new `--trailing-newline` option to control whether a trailing newline is added to the output ([#104](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/104))
+- Exclude empty strings from extracted keys ([#105](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/105))
+
 ## v10.0.1 (2025-07-29)
 
 - Avoid redundant property lookups on parent class in service parser ([#99](https://github.com/vendure-ecommerce/ngx-translate-extract/pull/99))
