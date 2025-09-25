@@ -1,10 +1,10 @@
-import { cyan, green, bold, dim, red } from 'colorette';
 import { globSync } from 'glob';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { TranslationCollection, TranslationType } from '../../utils/translation.collection.js';
 import { TaskInterface } from './task.interface.js';
+import { cyan, green, bold, dim, red } from '../../utils/cli-color.js';
 import { ParserInterface } from '../../parsers/parser.interface.js';
 import { PostProcessorInterface } from '../../post-processors/post-processor.interface.js';
 import { CompilerInterface } from '../../compilers/compiler.interface.js';

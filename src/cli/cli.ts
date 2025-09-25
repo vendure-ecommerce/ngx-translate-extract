@@ -1,5 +1,4 @@
 import yargs from 'yargs';
-import { green, red } from 'colorette';
 
 import { ExtractTask } from './tasks/extract.task.js';
 import { ParserInterface } from '../parsers/parser.interface.js';
@@ -18,6 +17,7 @@ import { PurgeObsoleteKeysPostProcessor } from '../post-processors/purge-obsolet
 import { StripPrefixPostProcessor } from '../post-processors/strip-prefix.post-processor.js';
 import { CompilerInterface, CompilerType } from '../compilers/compiler.interface.js';
 import { CompilerFactory } from '../compilers/compiler.factory.js';
+import { green, red } from '../utils/cli-color.js';
 import { normalizePaths } from '../utils/fs-helpers.js';
 import { FileCache } from '../cache/file-cache.js';
 import { TranslationType } from '../utils/translation.collection.js';
