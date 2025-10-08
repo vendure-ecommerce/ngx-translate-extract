@@ -284,8 +284,9 @@ describe('ServiceParser', () => {
 	});
 
 	it('should extract strings from all classes in the file', () => {
+		// language=typescript
 		const contents = `
-			import { Injectable } from '@angular/core';
+			import { Injectable, inject } from '@angular/core';
 			import { TranslateService } from '@ngx-translate/core';
 			export class Stuff {
 				thing: string;
@@ -360,6 +361,26 @@ describe('ServiceParser', () => {
 		`;
 		const keys = parser.extract(contents, componentFilename)?.keys();
 		expect(keys).to.deep.equal(['Hello World']);
+	});
+
+	it('should extract strings when TranslateService is injected using the inject function within the constructor', () => {
+		const contents = `
+			export class MyComponent {
+				readonly propInstant: string;
+				readonly propStream: string;
+				readonly propGet: string;
+
+				constructor() {
+					const translate = inject(TranslateService);
+
+					this.propInstant = translate.instant('key.instant');
+					this.propStream = translate.stream('key.stream');
+					this.propGet = translate.get('key.get');
+				}
+			}
+		`;
+		const keys = parser.extract(contents, componentFilename)?.keys();
+		expect(keys).to.deep.equal(['key.instant', 'key.stream', 'key.get']);
 	});
 
 	it('should locate TranslateService when it is a JavaScript native private property', () => {
