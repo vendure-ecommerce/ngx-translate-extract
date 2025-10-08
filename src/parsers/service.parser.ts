@@ -75,7 +75,15 @@ export class ServiceParser implements ParserInterface {
 			return [];
 		}
 		const paramName = findMethodParameterByType(constructorDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
-		return findMethodCallExpressions(constructorDeclaration, paramName, TRANSLATE_SERVICE_METHOD_NAMES);
+		const methodCallExpressions = findMethodCallExpressions(constructorDeclaration, paramName, TRANSLATE_SERVICE_METHOD_NAMES);
+
+		// Calls of the TranslateService when injected using the inject function within the constructor
+		const translateServiceLocalVariableName = findVariableNameByInjectType(constructorDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
+		const localVariableCallExpressions = translateServiceLocalVariableName
+			? findMethodCallExpressions(constructorDeclaration, translateServiceLocalVariableName, TRANSLATE_SERVICE_METHOD_NAMES)
+			: [];
+
+		return [...methodCallExpressions, ...localVariableCallExpressions];
 	}
 
 	protected findPropertyCallExpressions(classDeclaration: ClassDeclaration, sourceFile: SourceFile): CallExpression[] {
