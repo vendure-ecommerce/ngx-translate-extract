@@ -1,11 +1,12 @@
 #! /usr/bin/env node
 
 import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { styleText } from 'node:util';
 import { join, resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 import { stdout } from 'node:process';
 
-import JSON5 from 'json5';
+import { parseConfigFileTextToJson } from 'typescript';
 
 const PROJECT_NAME = 'ngx-translate-extract';
 const SEPARATOR = '-'.repeat(80);
@@ -15,8 +16,9 @@ console.log(`\nBuilding ${PROJECT_NAME}`);
 console.log(SEPARATOR);
 
 // Read tsconfig.json
-const tsconfigRaw = readFileSync(resolve(process.cwd(), 'tsconfig.json'), 'utf-8');
-const tsconfig = JSON5.parse(tsconfigRaw);
+const tsConfigPath = resolve(process.cwd(), 'tsconfig.json');
+const tsConfigRaw = readFileSync(tsConfigPath, 'utf-8');
+const tsconfig = parseConfigFileTextToJson(tsConfigPath, tsConfigRaw).config;
 
 // Get outDir from tsconfig.json
 const outDir = tsconfig?.compilerOptions?.outDir ?? null;
@@ -52,3 +54,4 @@ stdout.write(`⏳ Building project`);
 execSync(`tsc --project tsconfig.json`, { stdio: 'inherit' });
 stdout.write(`${CARRIAGE_CHAR}✔  Building project\n`);
 console.log(SEPARATOR);
+console.log(styleText('green', `DONE`));
