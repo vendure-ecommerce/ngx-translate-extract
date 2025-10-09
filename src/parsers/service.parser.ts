@@ -1,9 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 
-import { ClassDeclaration, CallExpression, SourceFile } from 'typescript';
-import { resolveSync } from 'tsconfig';
-import JSON5 from 'json5';
+import { ClassDeclaration, CallExpression, SourceFile, findConfigFile, parseConfigFileTextToJson } from 'typescript';
 
 import { ParserInterface } from './parser.interface.js';
 import { TranslationCollection } from '../utils/translation.collection.js';
@@ -128,10 +126,10 @@ export class ServiceParser implements ParserInterface {
 		} else {
 			// absolute import, use baseUrl if present
 			let baseUrl = currDir;
-			const tsconfigFilePath = resolveSync(currDir);
+			const tsconfigFilePath = findConfigFile(currDir, fs.existsSync);
 			if (tsconfigFilePath) {
-				const tsConfigFile = fs.readFileSync(tsconfigFilePath);
-				const config = JSON5.parse(tsConfigFile.toString());
+				const tsConfigFile = fs.readFileSync(tsconfigFilePath, { encoding: 'utf8' });
+				const config = parseConfigFileTextToJson(tsconfigFilePath, tsConfigFile).config;
 				const compilerOptionsBaseUrl = config.compilerOptions?.baseUrl ?? '';
 				baseUrl = path.resolve(path.dirname(tsconfigFilePath), compilerOptionsBaseUrl);
 			}
