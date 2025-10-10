@@ -142,7 +142,19 @@ export function findMethodCallExpressions(node: Node, propName: string, fnName: 
 
 	const fnNameRegex = functionNames.join('|');
 
-	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(PropertyAccessExpression:has(Identifier[name="${propName}"]):not(:has(ThisKeyword)), CallExpression:has(Identifier[name="inject"]))`;
+	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(PropertyAccessExpression:has(Identifier[name="${propName}"]):not(:has(ThisKeyword)))`;
+
+	return tsquery(node, query)
+		.filter((n) => functionNames.includes(n.getLastToken().getText()))
+		.map((n) => n.parent as CallExpression);
+}
+
+export function findInlineInjectCallExpressions(node: Node, injectType: string, fnName: string | string[]): CallExpression[] {
+	const functionNames = typeof fnName === 'string' ? [fnName] : fnName;
+
+	const fnNameRegex = functionNames.join('|');
+
+	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(CallExpression:has(Identifier[name="inject"]):has(Identifier[name="${injectType}"]))`;
 
 	return tsquery(node, query)
 		.filter((n) => functionNames.includes(n.getLastToken().getText()))

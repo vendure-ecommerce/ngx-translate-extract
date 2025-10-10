@@ -17,6 +17,7 @@ import {
 	getImportPath,
 	findFunctionExpressions,
 	findVariableNameByInjectType,
+	findInlineInjectCallExpressions,
 	getAST,
 	getNamedImport
 } from '../utils/ast-helpers.js';
@@ -43,7 +44,8 @@ export class ServiceParser implements ParserInterface {
 		functionDeclarations.forEach((fnDeclaration) => {
 			const translateServiceVariableName = findVariableNameByInjectType(fnDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
 			const callExpressions = findMethodCallExpressions(sourceFile, translateServiceVariableName, TRANSLATE_SERVICE_METHOD_NAMES);
-			translateServiceCallExpressions.push(...callExpressions);
+			const inlineInjectCallExpressions = findInlineInjectCallExpressions(sourceFile, TRANSLATE_SERVICE_TYPE_REFERENCE, TRANSLATE_SERVICE_METHOD_NAMES);
+			translateServiceCallExpressions.push(...callExpressions, ...inlineInjectCallExpressions);
 		});
 
 		classDeclarations.forEach((classDeclaration) => {
@@ -74,14 +76,14 @@ export class ServiceParser implements ParserInterface {
 		}
 		const paramName = findMethodParameterByType(constructorDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
 		const methodCallExpressions = findMethodCallExpressions(constructorDeclaration, paramName, TRANSLATE_SERVICE_METHOD_NAMES);
-
+		const inlineInjectCallExpressions = findInlineInjectCallExpressions(constructorDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE, TRANSLATE_SERVICE_METHOD_NAMES)
 		// Calls of the TranslateService when injected using the inject function within the constructor
 		const translateServiceLocalVariableName = findVariableNameByInjectType(constructorDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
 		const localVariableCallExpressions = translateServiceLocalVariableName
 			? findMethodCallExpressions(constructorDeclaration, translateServiceLocalVariableName, TRANSLATE_SERVICE_METHOD_NAMES)
 			: [];
 
-		return [...methodCallExpressions, ...localVariableCallExpressions];
+		return [...methodCallExpressions, ...localVariableCallExpressions, ...inlineInjectCallExpressions];
 	}
 
 	protected findPropertyCallExpressions(classDeclaration: ClassDeclaration, sourceFile: SourceFile): CallExpression[] {
