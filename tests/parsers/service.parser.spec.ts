@@ -383,6 +383,24 @@ describe('ServiceParser', () => {
 		expect(keys).to.deep.equal(['key.instant', 'key.stream', 'key.get']);
 	});
 
+	it('should extract strings when TranslateService is injected using the inject function inline within the constructor', () => {
+		const contents = `
+			export class MyComponent {
+				readonly propInstant: string;
+				readonly propStream: string;
+				readonly propGet: string;
+
+				constructor() {
+					this.propInstant = inject(TranslateService).instant('key.instant');
+					this.propStream = inject(TranslateService).stream('key.stream');
+					this.propGet = inject(TranslateService).get('key.get');
+				}
+			}
+		`;
+		const keys = parser.extract(contents, componentFilename)?.keys();
+		expect(keys).to.deep.equal(['key.instant', 'key.stream', 'key.get']);
+	});
+
 	it('should locate TranslateService when it is a JavaScript native private property', () => {
 		const contents = `
 			@Component({})
@@ -835,6 +853,21 @@ describe('ServiceParser', () => {
 			`;
 			const keys = parser.extract(contents, componentFilename)?.keys();
 			expect(keys).to.deep.equal(['translation.key']);
+		});
+
+		it('should ignore injected services that are not TranslateService type', () => {
+			const contents = `
+				import {inject} from '@angular/core';
+				import {HttpClient} from '@angular/common/http';
+
+				export const getResource = (): string => {
+					const someService = inject(SomeService).instant('property');
+					const someStream = inject(SomeStreamService).stream('property');
+					return inject(HttpClient).get('/path/to/resource/');
+				}
+			`;
+			const keys = parser.extract(contents, componentFilename)?.keys();
+			expect(keys).to.deep.equal([]);
 		});
 	});
 });
