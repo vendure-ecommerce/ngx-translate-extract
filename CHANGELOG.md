@@ -1,5 +1,12 @@
 # Changelog
 
+## v10.1.1 (2025-11-17)
+
+- Fix service parser incorrectly extracting strings from method calls on non-`TranslateService` types ([#116](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/116))
+- Fix service parser not detecting keys when `TranslateService` is provided via `inject()` inside the constructor ([#113](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/113))
+- Replace `tsconfig` and `JSON5` packages with TypeScript's built-in configuration utilities ([#115](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/115))
+- Replace `colorette` with Node's built-in `util.styleText` ([#112](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/112))
+
 ## v10.1.0 (2025-09-09)
 
 - Add new `--trailing-newline` option to control whether a trailing newline is added to the output ([#104](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/104))
