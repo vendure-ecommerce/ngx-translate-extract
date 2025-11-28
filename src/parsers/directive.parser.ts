@@ -168,7 +168,7 @@ export class DirectiveParser implements ParserInterface {
 	 * @param names
 	 */
 	protected getBoundAttribute(element: ElementLike, names: string[]): BoundAttribute {
-		return element.inputs.find((input) => names.includes(input.name));
+		return element.inputs.find((input) => !input.keySpan.details.startsWith('attr.') && names.includes(input.name));
 	}
 
 	/**
