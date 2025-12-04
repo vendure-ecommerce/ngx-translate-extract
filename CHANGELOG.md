@@ -1,5 +1,9 @@
 # Changelog
 
+## v10.1.2 (2025-12-04)
+
+- Fix directive parser incorrectly extracting strings from attribute bindings (e.g. `[attr.translate]`), as these are not processed by `ngx-translate` ([#121](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/121))
+
 ## v10.1.1 (2025-11-17)
 
 - Fix service parser incorrectly extracting strings from method calls on non-`TranslateService` types ([#116](https://github.com/vendure-ecommerce/ngx-translate-extract/issues/116))
