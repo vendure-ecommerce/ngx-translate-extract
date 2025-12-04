@@ -18,19 +18,19 @@
     "braces": "^3.0.3",
     "flat": "^6.0.1",
     "gettext-parser": "^8.0.0",
-    "glob": "^11.1.0",
+    "glob": "^13.0.0",
     "yargs": "^18.0.0"
   },
   "devDependencies": {
-    "@angular/compiler": "^20.3.12",
+    "@angular/compiler": "^21.0.3",
     "@types/braces": "^3.0.5",
     "@types/gettext-parser": "^8.0.0",
     "@types/node": "^20.19.25",
     "@types/yargs": "^17.0.35",
-    "oxlint": "^1.29.0",
-    "prettier": "^3.6.2",
+    "oxlint": "^1.31.0",
+    "prettier": "^3.7.4",
     "typescript": "~5.9.2",
-    "vitest": "^4.0.10"
+    "vitest": "^4.0.15"
   },
   "peerDependencies": {
     "@angular/compiler": ">=20.0.0",
