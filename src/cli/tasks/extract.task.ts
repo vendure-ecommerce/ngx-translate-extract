@@ -6,6 +6,7 @@ import { globSync } from 'glob';
 import type { CacheInterface } from '../../cache/cache-interface.js';
 import { NullCache } from '../../cache/null-cache.js';
 import { CompilerInterface } from '../../compilers/compiler.interface.js';
+import { JsonCompiler } from '../../compilers/json.compiler.js';
 import { ParserInterface } from '../../parsers/parser.interface.js';
 import { PostProcessorInterface } from '../../post-processors/post-processor.interface.js';
 import { clearAstCache } from '../../utils/ast-helpers.js';
@@ -24,7 +25,7 @@ export class ExtractTask implements TaskInterface {
 
 	protected parsers: ParserInterface[] = [];
 	protected postProcessors: PostProcessorInterface[] = [];
-	protected compiler: CompilerInterface;
+	protected compiler: CompilerInterface = new JsonCompiler();
 	protected cache: CacheInterface<TranslationType[]> = new NullCache<TranslationType[]>();
 
 	public constructor(
@@ -38,10 +39,6 @@ export class ExtractTask implements TaskInterface {
 	}
 
 	public execute(): void {
-		if (!this.compiler) {
-			throw new Error('No compiler configured');
-		}
-
 		this.printEnabledParsers();
 		this.printEnabledPostProcessors();
 		this.printEnabledCompiler();
@@ -134,7 +131,7 @@ export class ExtractTask implements TaskInterface {
 							const extracted = parser.extract(contents, filePath);
 							return extracted instanceof TranslationCollection ? extracted.values : undefined;
 						})
-						.filter((result): result is TranslationType => result && !!Object.keys(result).length);
+						.filter((result): result is TranslationType => !!result && !!Object.keys(result).length);
 				});
 
 				collectionTypes.push(...cachedCollectionValues);

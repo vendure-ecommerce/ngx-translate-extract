@@ -63,6 +63,9 @@ export class DirectiveParser implements ParserInterface {
 			const boundAttribute = this.getBoundAttribute(element, TRANSLATE_ATTR_NAMES);
 			if (boundAttribute?.value) {
 				this.getLiteralPrimitives(boundAttribute.value).forEach((literalPrimitive) => {
+					if (!literalPrimitive.value) {
+						return;
+					}
 					collection = collection.add(literalPrimitive.value.toString(), '', filePath);
 				});
 				return;
@@ -105,7 +108,7 @@ export class DirectiveParser implements ParserInterface {
 	 * Get the child elements that are inside a block node (e.g. @if, @deferred)
 	 */
 	protected getElementsWithTranslateAttributeFromBlockNodes(blockNode: BlockNode) {
-		let blockChildren = blockNode.children;
+		let blockChildren = blockNode.children ?? [];
 
 		if (blockNode instanceof TmplAstIfBlock) {
 			blockChildren = blockNode.branches.map((branch) => branch.children).flat();
@@ -153,7 +156,7 @@ export class DirectiveParser implements ParserInterface {
 	 * @param element
 	 * @param names
 	 */
-	protected getAttribute(element: ElementLike, names: string[]): TextAttribute {
+	protected getAttribute(element: ElementLike, names: string[]): TextAttribute | undefined {
 		return element.attributes.find((attribute) => names.includes(attribute.name));
 	}
 
@@ -171,8 +174,8 @@ export class DirectiveParser implements ParserInterface {
 	 * @param element
 	 * @param names
 	 */
-	protected getBoundAttribute(element: ElementLike, names: string[]): BoundAttribute {
-		return element.inputs.find((input) => !input.keySpan.details.startsWith('attr.') && names.includes(input.name));
+	protected getBoundAttribute(element: ElementLike, names: string[]): BoundAttribute | undefined {
+		return element.inputs.find((input) => !input.keySpan.details?.startsWith('attr.') && names.includes(input.name));
 	}
 
 	/**

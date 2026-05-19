@@ -172,8 +172,11 @@ const cli = await y
 	.exitProcess(true)
 	.parse(process.argv);
 
-const extractTask = new ExtractTask(cli.input, cli.output, {
-	replace: cli.replace,
+const inputs = Array.isArray(cli.input) ? cli.input : [process.cwd()];
+const outputs = Array.isArray(cli.output) ? cli.output : [];
+
+const extractTask = new ExtractTask(inputs, outputs, {
+	replace: !!cli.replace,
 });
 
 // Parsers

@@ -10,7 +10,7 @@ const getHash = (value: string) => crypto.createHash('sha256').update(value).dig
 export class FileCache<RESULT extends object = object> implements CacheInterface<RESULT> {
 	private tapped: Record<string, RESULT> = {};
 	private cached?: Readonly<Record<string, RESULT>> = undefined;
-	private originalCache?: string;
+	private originalCache?: string | undefined;
 	private versionHash?: string;
 
 	constructor(private cacheFile: string) {}
@@ -23,7 +23,7 @@ export class FileCache<RESULT extends object = object> implements CacheInterface
 
 		const key = getHash(`${this.versionHash}${uniqueContents}`);
 
-		if (key in this.cached) {
+		if (this.cached && key in this.cached) {
 			this.tapped[key] = this.cached[key];
 
 			return this.cached[key];

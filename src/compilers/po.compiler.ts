@@ -61,7 +61,7 @@ export class PoCompiler implements CompilerInterface {
 			}
 
 			convertedTranslations[msgid] = {
-				value: message.msgstr.at(-1),
+				value: message.msgstr.at(-1) ?? '',
 				sourceFiles: message.comments?.reference?.split('\n') || [],
 			};
 		}

@@ -158,7 +158,7 @@ export function getNamedImportAlias(node: Node, importName: string, importPath: 
 	return identifiers.at(-1)?.text ?? null;
 }
 
-export function findClassDeclarations(node: Node, name: string = null): ClassDeclaration[] {
+export function findClassDeclarations(node: Node, name?: string): ClassDeclaration[] {
 	let query = 'ClassDeclaration';
 	if (name) {
 		query += `:has(Identifier[name="${name}"])`;
@@ -173,13 +173,13 @@ export function findFunctionExpressions(node: Node) {
 export function getSuperClassName(node: Node): string | null {
 	const query = 'ClassDeclaration > HeritageClause Identifier';
 	const [result] = tsquery<Identifier>(node, query);
-	return result?.text;
+	return result?.text ?? null;
 }
 
 export function getImportPath(node: Node, className: string): string | null {
 	const query = `ImportDeclaration:has(Identifier[name="${className}"]) StringLiteral`;
 	const [result] = tsquery<StringLiteral>(node, query);
-	return result?.text;
+	return result?.text ?? null;
 }
 
 export function findClassPropertiesByType(node: ClassDeclaration, type: string): string[] {
@@ -191,7 +191,7 @@ export function findClassPropertiesByType(node: ClassDeclaration, type: string):
 	];
 }
 
-export function findConstructorDeclaration(node: ClassDeclaration): ConstructorDeclaration {
+export function findConstructorDeclaration(node: ClassDeclaration): ConstructorDeclaration | undefined {
 	const query = 'Constructor';
 	const [result] = tsquery<ConstructorDeclaration>(node, query);
 	return result;
@@ -220,9 +220,7 @@ export function findMethodCallExpressions(node: Node, propName: string, fnName: 
 
 	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(PropertyAccessExpression:has(Identifier[name="${propName}"]):not(:has(ThisKeyword)))`;
 
-	return tsquery(node, query)
-		.filter((n) => functionNames.includes(n.getLastToken().getText()))
-		.map((n) => n.parent as CallExpression);
+	return unwrapMatchedCallExpressions(tsquery(node, query), functionNames);
 }
 
 export function findInlineInjectCallExpressions(node: Node, injectType: string, fnName: string | string[]): CallExpression[] {
@@ -232,9 +230,7 @@ export function findInlineInjectCallExpressions(node: Node, injectType: string, 
 
 	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(CallExpression:has(Identifier[name="inject"]):has(Identifier[name="${injectType}"]))`;
 
-	return tsquery(node, query)
-		.filter((n) => functionNames.includes(n.getLastToken().getText()))
-		.map((n) => n.parent as CallExpression);
+	return unwrapMatchedCallExpressions(tsquery(node, query), functionNames);
 }
 
 export function findClassPropertiesConstructorParameterByType(node: ClassDeclaration, type: string): string[] {
@@ -292,7 +288,7 @@ export function findPropertyCallExpressions(node: Node, prop: string, fnName: st
 		const method = property?.parent;
 		const callExpression = method?.parent;
 
-		if (identifier?.getText() === prop && isCallExpression(callExpression)) {
+		if (identifier?.getText() === prop && callExpression && isCallExpression(callExpression)) {
 			nodes.push(callExpression);
 		}
 	});
@@ -306,10 +302,7 @@ export function getStringsFromExpression(expression: Expression): string[] {
 	}
 
 	if (isArrayLiteralExpression(expression)) {
-		return expression.elements.reduce((result: string[], element: Expression) => {
-			const strings = getStringsFromExpression(element);
-			return [...result, ...strings];
-		}, []);
+		return expression.elements.flatMap(getStringsFromExpression);
 	}
 
 	if (isBinaryExpression(expression)) {
@@ -370,4 +363,22 @@ export function getNodesFromSwitchBlockTmpl(node: TmplAstSwitchBlock): TmplAstNo
 		}
 		return group.children;
 	});
+}
+
+/**
+ * Filters nodes whose last token matches one of the given function
+ * names, then returns the parent of each match if it is a CallExpression.
+ */
+export function unwrapMatchedCallExpressions(nodes: Node[], fnNames: string[]): CallExpression[] {
+	const fnNameSet = new Set(fnNames);
+	const results: CallExpression[] = [];
+
+	for (const n of nodes) {
+		const lastToken = n.getLastToken();
+		if (lastToken && fnNameSet.has(lastToken.getText()) && isCallExpression(n.parent)) {
+			results.push(n.parent);
+		}
+	}
+
+	return results;
 }

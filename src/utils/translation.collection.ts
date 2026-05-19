@@ -5,7 +5,7 @@ export interface TranslationType {
 }
 
 export interface TranslationInterface {
-	value: string;
+	value: string | null;
 	sourceFiles: string[];
 }
 
@@ -37,12 +37,12 @@ export class TranslationCollection {
 		return this.filter((k) => key !== k);
 	}
 
-	public forEach(callback: (key?: string, val?: TranslationInterface) => void): TranslationCollection {
+	public forEach(callback: (key: string, val: TranslationInterface) => void): TranslationCollection {
 		Object.keys(this.values).forEach((key) => callback.call(this, key, this.values[key]));
 		return this;
 	}
 
-	public filter(callback: (key?: string, val?: TranslationInterface) => boolean): TranslationCollection {
+	public filter(callback: (key: string, val: TranslationInterface) => boolean): TranslationCollection {
 		const values: TranslationType = {};
 		this.forEach((key, val) => {
 			if (callback.call(this, key, val)) {
@@ -52,7 +52,7 @@ export class TranslationCollection {
 		return new TranslationCollection(values);
 	}
 
-	public map(callback: (key?: string, val?: TranslationInterface) => TranslationInterface): TranslationCollection {
+	public map(callback: (key: string, val: TranslationInterface) => TranslationInterface): TranslationCollection {
 		const values: TranslationType = {};
 		this.forEach((key, val) => {
 			values[key] = callback.call(this, key, val);
@@ -104,8 +104,8 @@ export class TranslationCollection {
 		return new TranslationCollection(values);
 	}
 
-	public toKeyValueObject(): { [key: string]: string } {
-		const jsonTranslations: { [key: string]: string } = {};
+	public toKeyValueObject(): { [key: string]: string | null } {
+		const jsonTranslations: { [key: string]: string | null } = {};
 		Object.entries(this.values).map(([key, value]: [string, TranslationInterface]) => (jsonTranslations[key] = value.value));
 		return jsonTranslations;
 	}

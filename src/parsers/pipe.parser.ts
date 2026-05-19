@@ -1,7 +1,6 @@
 import {
 	AST,
 	TmplAstNode,
-	parseTemplate,
 	BindingPipe,
 	LiteralPrimitive,
 	Conditional,
@@ -27,11 +26,11 @@ import { ParserInterface } from './parser.interface.js';
 
 export const TRANSLATE_PIPE_NAMES = ['translate', 'marker'];
 
-function traverseAstNodes<RESULT, NODE extends TmplAstNode | TmplAstElement>(
-	nodes: (NODE | null)[],
-	visitor: (node: NODE) => RESULT[],
-	accumulator: RESULT[] = [],
-): RESULT[] {
+function traverseAstNodes<T>(
+	nodes: (TmplAstNode | TmplAstElement)[],
+	visitor: (node: TmplAstNode | TmplAstElement) => T[],
+	accumulator: T[] = [],
+): T[] {
 	for (const node of nodes) {
 		if (node) {
 			traverseAstNode(node, visitor, accumulator);
@@ -41,11 +40,11 @@ function traverseAstNodes<RESULT, NODE extends TmplAstNode | TmplAstElement>(
 	return accumulator;
 }
 
-function traverseAstNode<RESULT, NODE extends TmplAstNode | TmplAstElement>(
-	node: NODE,
-	visitor: (node: NODE) => RESULT[],
-	accumulator: RESULT[] = [],
-): RESULT[] {
+function traverseAstNode<T>(
+	node: TmplAstNode | TmplAstElement,
+	visitor: (node: TmplAstNode | TmplAstElement) => T[],
+	accumulator: T[] = [],
+): T[] {
 	accumulator.push(...visitor(node));
 
 	const children: TmplAstNode[] = [];
@@ -55,15 +54,15 @@ function traverseAstNode<RESULT, NODE extends TmplAstNode | TmplAstElement>(
 	}
 
 	// contents of @for extra sibling block @empty
-	if (node instanceof TmplAstForLoopBlock) {
+	if (node instanceof TmplAstForLoopBlock && node.empty) {
 		children.push(node.empty);
 	}
 
 	// contents of @defer extra sibling blocks @error, @placeholder and @loading
 	if (node instanceof TmplAstDeferredBlock) {
-		children.push(node.error);
-		children.push(node.loading);
-		children.push(node.placeholder);
+		if (node.error) children.push(node.error);
+		if (node.loading) children.push(node.loading);
+		if (node.placeholder) children.push(node.placeholder);
 	}
 
 	// contents of @if and @else (ignoring the @if(...) condition statement though)
@@ -239,15 +238,7 @@ export class PipeParser implements ParserInterface {
 	}
 
 	protected getTranslatablesFromAsts(asts: AST[]): BindingPipe[] {
-		return this.flatten(asts.map((ast) => this.getTranslatablesFromAst(ast)));
-	}
-
-	protected flatten<T extends AST>(array: T[][]): T[] {
-		return [].concat(...array);
-	}
-
-	protected parseTemplate(template: string, path: string): TmplAstNode[] {
-		return parseTemplate(template, path).nodes;
+		return asts.map((ast) => this.getTranslatablesFromAst(ast)).flat();
 	}
 
 	/** Checks whether a Binary node uses a logical (&&, ||) or nullish coalescing (??) operator. */

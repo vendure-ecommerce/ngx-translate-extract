@@ -48,7 +48,9 @@ export class ServiceParser implements ParserInterface {
 
 		functionDeclarations.forEach((fnDeclaration) => {
 			const translateServiceVariableName = findVariableNameByInjectType(fnDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
-			const callExpressions = findMethodCallExpressions(sourceFile, translateServiceVariableName, TRANSLATE_SERVICE_METHOD_NAMES);
+			const callExpressions = translateServiceVariableName
+				? findMethodCallExpressions(sourceFile, translateServiceVariableName, TRANSLATE_SERVICE_METHOD_NAMES)
+				: [];
 			const inlineInjectCallExpressions = findInlineInjectCallExpressions(
 				sourceFile,
 				TRANSLATE_SERVICE_TYPE_REFERENCE,
@@ -70,7 +72,9 @@ export class ServiceParser implements ParserInterface {
 			.filter((callExpression) => !!callExpression.arguments?.[0])
 			.forEach((callExpression) => {
 				const [firstArg] = callExpression.arguments;
-
+				if (!firstArg) {
+					return;
+				}
 				const strings = getStringsFromExpression(firstArg);
 				collection = collection.addKeys(strings, filePath);
 			});
@@ -84,7 +88,9 @@ export class ServiceParser implements ParserInterface {
 			return [];
 		}
 		const paramName = findMethodParameterByType(constructorDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE);
-		const methodCallExpressions = findMethodCallExpressions(constructorDeclaration, paramName, TRANSLATE_SERVICE_METHOD_NAMES);
+		const methodCallExpressions = paramName
+			? findMethodCallExpressions(constructorDeclaration, paramName, TRANSLATE_SERVICE_METHOD_NAMES)
+			: [];
 		const inlineInjectCallExpressions = findInlineInjectCallExpressions(
 			constructorDeclaration,
 			TRANSLATE_SERVICE_TYPE_REFERENCE,
@@ -124,11 +130,15 @@ export class ServiceParser implements ParserInterface {
 
 		// Resolve the actual name of the superclass from the named import
 		const superClassName = getNamedImport(ast, superClassNameOrAlias, importPath);
+		if (!superClassName) {
+			return [];
+		}
 		const currDir = path.join(path.dirname(ast.fileName), '/');
 
 		const cacheKey = `${currDir}|${importPath}`;
-		if (ServiceParser.propertyMap.has(cacheKey)) {
-			return ServiceParser.propertyMap.get(cacheKey);
+		const cached = ServiceParser.propertyMap.get(cacheKey);
+		if (cached) {
+			return cached;
 		}
 
 		let superClassPath: string;
@@ -169,7 +179,10 @@ export class ServiceParser implements ParserInterface {
 		potentialSuperFiles.forEach((file) => {
 			const superClassFileContent = fs.readFileSync(file, 'utf8');
 			const superClassAst = getAST(superClassFileContent, file).parsedFile;
-			const superClassDeclarations = superClassAst ? findClassDeclarations(superClassAst, superClassName) : [];
+			if (!superClassAst) {
+				return;
+			}
+			const superClassDeclarations = findClassDeclarations(superClassAst, superClassName);
 			const superClassPropertyNames = superClassDeclarations.flatMap((superClassDeclaration) =>
 				findClassPropertiesByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE),
 			);

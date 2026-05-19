@@ -29,9 +29,7 @@ export class JsonCompiler implements CompilerInterface {
 			values = flatten(values);
 		}
 		const newValues: TranslationType = {};
-		Object.entries(values).forEach(
-			([key, value]: [string, string]) => (newValues[key] = <TranslationInterface>{ value: value, sourceFiles: [] }),
-		);
+		Object.entries(values).forEach(([key, value]) => (newValues[key] = <TranslationInterface>{ value: value, sourceFiles: [] }));
 		return new TranslationCollection(newValues);
 	}
 

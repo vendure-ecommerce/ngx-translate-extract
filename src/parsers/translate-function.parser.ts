@@ -7,6 +7,10 @@ export class TranslateFunctionParser implements ParserInterface {
 		let collection = new TranslationCollection();
 		const sourceFile = getAST(source, filePath).parsedFile;
 
+		if (!sourceFile) {
+			return collection;
+		}
+
 		const translateFnImportName = getNamedImportAlias(sourceFile, 'translate', '@ngx-translate/core');
 		if (!translateFnImportName) {
 			return collection;
