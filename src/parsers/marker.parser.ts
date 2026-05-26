@@ -10,19 +10,18 @@ const NGX_TRANSLATE_MARKER_MODULE_NAME = '@ngx-translate/core';
 const NGX_TRANSLATE_MARKER_IMPORT_NAME = '_';
 
 export class MarkerParser implements ParserInterface {
-	public extract(source: string, filePath: string): TranslationCollection | null {
+	public extract(source: string, filePath: string): TranslationCollection {
+		let collection = new TranslationCollection();
 		const sourceFile = getAST(source, filePath).parsedFile;
 
 		if (!sourceFile) {
-			return null;
+			return collection;
 		}
 
 		const markerImportName = this.getMarkerImportNameFromSource(sourceFile);
 		if (!markerImportName) {
-			return null;
+			return collection;
 		}
-
-		let collection: TranslationCollection = new TranslationCollection();
 
 		const callExpressions = findFunctionCallExpressions(sourceFile, markerImportName);
 		callExpressions.forEach((callExpression) => {

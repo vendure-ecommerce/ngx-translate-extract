@@ -8,7 +8,6 @@ import {
 	LiteralArray,
 	LiteralMap,
 	LiteralPrimitive,
-	parseTemplate,
 	TmplAstBoundAttribute as BoundAttribute,
 	TmplAstElement as Element,
 	TmplAstNode as Node,
@@ -41,13 +40,12 @@ export const TRANSLATE_ATTR_NAMES = ['translate', 'marker'];
 type ElementLike = Element | Template;
 
 export class DirectiveParser implements ParserInterface {
-	public extract(source: string, filePath: string): TranslationCollection | null {
+	public extract(source: string, filePath: string): TranslationCollection {
 		let collection: TranslationCollection = new TranslationCollection();
-
 		const parsedTemplates = getAST(source, filePath).parsedTemplates;
 
 		if (parsedTemplates.length === 0) {
-			return null;
+			return collection;
 		}
 
 		const nodes: TmplAstNode[] = parsedTemplates.map((parsedTpl) => parsedTpl.nodes).flat();
@@ -240,14 +238,5 @@ export class DirectiveParser implements ParserInterface {
 	 */
 	protected isText(node: Node): node is Text {
 		return node instanceof Text;
-	}
-
-	/**
-	 * Parse a template into nodes
-	 * @param template
-	 * @param path
-	 */
-	protected parseTemplate(template: string, path: string): Node[] {
-		return parseTemplate(template, path).nodes;
 	}
 }

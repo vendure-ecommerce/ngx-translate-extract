@@ -28,21 +28,20 @@ const TRANSLATE_SERVICE_METHOD_NAMES = ['get', 'instant', 'stream', 'translate']
 export class ServiceParser implements ParserInterface {
 	private static propertyMap = new Map<string, string[]>();
 
-	public extract(source: string, filePath: string): TranslationCollection | null {
+	public extract(source: string, filePath: string): TranslationCollection {
+		let collection = new TranslationCollection();
 		const sourceFile = getAST(source, filePath).parsedFile;
 
 		if (!sourceFile) {
-			return null;
+			return collection;
 		}
 
 		const classDeclarations = findClassDeclarations(sourceFile);
 		const functionDeclarations = findFunctionExpressions(sourceFile);
 
-		if (!classDeclarations && !functionDeclarations) {
-			return null;
+		if (classDeclarations.length === 0 && functionDeclarations.length === 0) {
+			return collection;
 		}
-
-		let collection: TranslationCollection = new TranslationCollection();
 
 		const translateServiceCallExpressions: CallExpression[] = [];
 

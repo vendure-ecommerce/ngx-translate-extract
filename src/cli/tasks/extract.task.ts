@@ -129,9 +129,9 @@ export class ExtractTask implements TaskInterface {
 					return this.parsers
 						.map((parser) => {
 							const extracted = parser.extract(contents, filePath);
-							return extracted instanceof TranslationCollection ? extracted.values : undefined;
+							return extracted.values;
 						})
-						.filter((result): result is TranslationType => !!result && !!Object.keys(result).length);
+						.filter((result) => Object.keys(result).length > 0);
 				});
 
 				collectionTypes.push(...cachedCollectionValues);

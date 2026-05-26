@@ -8,14 +8,13 @@ const { isIdentifier } = pkg;
 export class FunctionParser implements ParserInterface {
 	constructor(private fnName: string) {}
 
-	public extract(source: string, filePath: string): TranslationCollection | null {
+	public extract(source: string, filePath: string): TranslationCollection {
+		let collection: TranslationCollection = new TranslationCollection();
 		const sourceFile = getAST(source, filePath).parsedFile;
 
 		if (!sourceFile) {
-			return null;
+			return collection;
 		}
-
-		let collection: TranslationCollection = new TranslationCollection();
 
 		const callExpressions = findSimpleCallExpressions(sourceFile, this.fnName);
 		callExpressions.forEach((callExpression) => {
