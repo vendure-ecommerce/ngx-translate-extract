@@ -18,7 +18,7 @@ import { PurgeObsoleteKeysPostProcessor } from '../post-processors/purge-obsolet
 import { SortByKeyPostProcessor } from '../post-processors/sort-by-key.post-processor.js';
 import { StringAsDefaultValuePostProcessor } from '../post-processors/string-as-default-value.post-processor.js';
 import { StripPrefixPostProcessor } from '../post-processors/strip-prefix.post-processor.js';
-import { green, red } from '../utils/cli-color.js';
+import { green, red, yellow } from '../utils/cli-color.js';
 import { normalizePaths } from '../utils/fs-helpers.js';
 import { TranslationType } from '../utils/translation.collection.js';
 import { ExtractTask } from './tasks/extract.task.js';
@@ -201,7 +201,7 @@ if (cli.keyAsDefaultValue) {
 	postProcessors.push(new KeyAsDefaultValuePostProcessor());
 } else if (cli.keyAsInitialDefaultValue) {
 	postProcessors.push(new KeyAsInitialDefaultValuePostProcessor());
-} else if (cli.nullAsDefaultValue) {
+} else if (cli.nullAsDefaultValue && cli.format !== CompilerType.Pot) {
 	postProcessors.push(new NullAsDefaultValuePostProcessor());
 } else if (cli.stringAsDefaultValue) {
 	postProcessors.push(new StringAsDefaultValuePostProcessor({ defaultValue: cli.stringAsDefaultValue as string }));
@@ -227,6 +227,9 @@ extractTask.setCompiler(compiler);
 // Run task
 try {
 	extractTask.execute();
+	if (cli.nullAsDefaultValue && cli.format === CompilerType.Pot) {
+		console.log(yellow(`\nWARNING: POT format does not support --null-as-default-value.`));
+	}
 	console.log(green('\nDone.\n'));
 	process.exit(0);
 } catch (e) {

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, it, expect } from 'vitest';
 
-import { cyan, green, bold, dim, red } from './../../src/utils/cli-color.js';
+import { cyan, green, bold, dim, red, yellow } from './../../src/utils/cli-color.js';
 
 process.env.FORCE_COLOR = '1';
 
@@ -45,5 +45,11 @@ describe('cli-color', () => {
 		const result = red(sampleText);
 		const ANSIRed = `\u001b[31m${sampleText}\u001b[39m`;
 		expect(result).toBe(ANSIRed);
+	});
+
+	it('should wrap text in yellow', () => {
+		const result = yellow(sampleText);
+		const ANSIYellow = `\u001b[33m${sampleText}\u001b[39m`;
+		expect(result).toBe(ANSIYellow);
 	});
 });

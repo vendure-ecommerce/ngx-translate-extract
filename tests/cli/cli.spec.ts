@@ -99,4 +99,13 @@ describe.concurrent('CLI Integration Tests', () => {
 
 		expect(extracted).toMatchSnapshot();
 	});
+
+	test('logs a warning when --null-as-default-value is used with pot format', async ({ expect }) => {
+		const OUTPUT_FILE = createUniqueFileName('strings.po');
+		const { stdout } = await execAsync(
+			`node ${CLI_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_FILE} --format=pot --null-as-default-value`,
+		);
+
+		expect(stdout).toContain('WARNING: POT format does not support --null-as-default-value.');
+	});
 });
