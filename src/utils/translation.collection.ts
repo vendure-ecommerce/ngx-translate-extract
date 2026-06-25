@@ -1,4 +1,5 @@
 import { normalizeFilePath } from './fs-helpers.js';
+import { objectMap } from './utils.js';
 
 export interface TranslationType {
 	[key: string]: TranslationInterface;
@@ -105,9 +106,7 @@ export class TranslationCollection {
 	}
 
 	public toKeyValueObject(): { [key: string]: string | null } {
-		const jsonTranslations: { [key: string]: string | null } = {};
-		Object.entries(this.values).map(([key, value]: [string, TranslationInterface]) => (jsonTranslations[key] = value.value));
-		return jsonTranslations;
+		return objectMap(this.values, (value) => value.value);
 	}
 
 	public stripKeyPrefix(prefix: string): TranslationCollection {

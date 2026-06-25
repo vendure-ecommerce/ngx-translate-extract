@@ -1,8 +1,8 @@
 import { flatten, unflatten } from 'flat';
 
-import { TranslationCollection, TranslationInterface, TranslationType } from '../utils/translation.collection.js';
-import { stripBOM } from '../utils/utils.js';
-import { CompilerInterface, CompilerOptions } from './compiler.interface.js';
+import { TranslationCollection } from '../utils/translation.collection.js';
+import { objectMap, stripBOM } from '../utils/utils.js';
+import { type CompilerInterface, type CompilerOptions } from './compiler.interface.js';
 
 export class NamespacedJsonCompiler implements CompilerInterface {
 	public indentation: string = '\t';
@@ -26,10 +26,7 @@ export class NamespacedJsonCompiler implements CompilerInterface {
 
 	public parse(contents: string): TranslationCollection {
 		const values: Record<string, string> = flatten(JSON.parse(stripBOM(contents)));
-		const newValues: TranslationType = {};
-		Object.entries(values).forEach(
-			([key, value]: [string, string]) => (newValues[key] = <TranslationInterface>{ value: value, sourceFiles: [] }),
-		);
+		const newValues = objectMap(values, (value) => ({ value: value === null ? null : `${value}`, sourceFiles: [] }));
 		return new TranslationCollection(newValues);
 	}
 }
