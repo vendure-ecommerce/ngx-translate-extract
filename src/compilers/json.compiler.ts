@@ -1,8 +1,8 @@
 import { flatten } from 'flat';
 
-import { TranslationCollection, TranslationInterface, TranslationType } from '../utils/translation.collection.js';
-import { stripBOM } from '../utils/utils.js';
-import { CompilerInterface, CompilerOptions } from './compiler.interface.js';
+import { TranslationCollection } from '../utils/translation.collection.js';
+import { objectMap, objectSome, stripBOM } from '../utils/utils.js';
+import { type CompilerInterface, type CompilerOptions } from './compiler.interface.js';
 
 export class JsonCompiler implements CompilerInterface {
 	public indentation: string = '\t';
@@ -28,8 +28,7 @@ export class JsonCompiler implements CompilerInterface {
 		if (this.isNamespacedJsonFormat(values)) {
 			values = flatten(values);
 		}
-		const newValues: TranslationType = {};
-		Object.entries(values).forEach(([key, value]) => (newValues[key] = <TranslationInterface>{ value: value, sourceFiles: [] }));
+		const newValues = objectMap(values, (value) => ({ value: value === null ? null : `${value}`, sourceFiles: [] }));
 		return new TranslationCollection(newValues);
 	}
 
@@ -38,10 +37,10 @@ export class JsonCompiler implements CompilerInterface {
 			return false;
 		}
 
-		return Object.keys(values).some((key) => typeof values[key] === 'object');
+		return objectSome(values, (value) => isObject(value));
 	}
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null;
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
