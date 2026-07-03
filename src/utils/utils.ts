@@ -1,3 +1,5 @@
+import { type TranslationInterface } from './translation.collection.js';
+
 type CallbackFn<T, U = void> = (value: T, key: string, obj: Record<string, T>) => U;
 
 export function stripBOM(contents: string): string {
@@ -32,4 +34,8 @@ export function objectSome<T>(obj: Record<string, T>, predicate: CallbackFn<T, b
 		}
 	}
 	return false;
+}
+
+export function toTranslationType(value: string, filePath: string): TranslationInterface {
+	return { value: value, sourceFiles: [filePath] };
 }

@@ -1,7 +1,9 @@
 import { SourceFile } from 'typescript';
 
 import { getNamedImportAlias, findFunctionCallExpressions, getStringsFromExpression, getAST } from '../utils/ast-helpers.js';
-import { TranslationCollection } from '../utils/translation.collection.js';
+import { normalizeFilePath } from '../utils/fs-helpers.js';
+import { TranslationCollection, type TranslationType } from '../utils/translation.collection.js';
+import { toTranslationType } from '../utils/utils.js';
 import { ParserInterface } from './parser.interface.js';
 
 const MARKER_MODULE_NAME = new RegExp('ngx-translate-extract-marker');
@@ -11,16 +13,17 @@ const NGX_TRANSLATE_MARKER_IMPORT_NAME = '_';
 
 export class MarkerParser implements ParserInterface {
 	public extract(source: string, filePath: string): TranslationCollection {
-		let collection = new TranslationCollection();
+		const extracted: TranslationType = Object.create(null);
+		const filePathNormalized = normalizeFilePath(filePath);
 		const sourceFile = getAST(source, filePath).parsedFile;
 
 		if (!sourceFile) {
-			return collection;
+			return new TranslationCollection();
 		}
 
 		const markerImportName = this.getMarkerImportNameFromSource(sourceFile);
 		if (!markerImportName) {
-			return collection;
+			return new TranslationCollection();
 		}
 
 		const callExpressions = findFunctionCallExpressions(sourceFile, markerImportName);
@@ -29,10 +32,11 @@ export class MarkerParser implements ParserInterface {
 			if (!firstArg) {
 				return;
 			}
-			const strings = getStringsFromExpression(firstArg);
-			collection = collection.addKeys(strings, filePath);
+			getStringsFromExpression(firstArg).forEach((key) => {
+				extracted[key] = toTranslationType('', filePathNormalized);
+			});
 		});
-		return collection;
+		return new TranslationCollection(extracted);
 	}
 
 	private getMarkerImportNameFromSource(sourceFile: SourceFile): string {

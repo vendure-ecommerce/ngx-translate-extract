@@ -21,7 +21,9 @@ import {
 } from '@angular/compiler';
 
 import { getAST, getNodesFromSwitchBlockTmpl } from '../utils/ast-helpers.js';
-import { TranslationCollection } from '../utils/translation.collection.js';
+import { normalizeFilePath } from '../utils/fs-helpers.js';
+import { TranslationCollection, type TranslationType } from '../utils/translation.collection.js';
+import { toTranslationType } from '../utils/utils.js';
 import { ParserInterface } from './parser.interface.js';
 
 export const TRANSLATE_PIPE_NAMES = ['translate', 'marker'];
@@ -81,11 +83,12 @@ function traverseAstNode<T>(
 
 export class PipeParser implements ParserInterface {
 	public extract(source: string, filePath: string): TranslationCollection {
+		const filePathNormalized = normalizeFilePath(filePath);
 		const parsedTemplates = getAST(source, filePath).parsedTemplates;
 		if (parsedTemplates.length === 0) {
 			return new TranslationCollection();
 		}
-		let collection: TranslationCollection = new TranslationCollection();
+		const extracted: TranslationType = Object.create(null);
 		const nodes: TmplAstNode[] = parsedTemplates.map((parsedTpl) => parsedTpl.nodes).flat();
 		const pipes = traverseAstNodes(nodes, (node) => this.findPipesInNode(node));
 
@@ -94,10 +97,10 @@ export class PipeParser implements ParserInterface {
 				if (key === '') {
 					return;
 				}
-				collection = collection.add(key, '', filePath);
+				extracted[key] = toTranslationType('', filePathNormalized);
 			});
 		});
-		return collection;
+		return new TranslationCollection(extracted);
 	}
 
 	protected findPipesInNode(node: TmplAstNode): BindingPipe[] {
@@ -109,7 +112,7 @@ export class PipeParser implements ParserInterface {
 
 		if ('attributes' in node && Array.isArray(node.attributes)) {
 			const translatableAttributes = node.attributes.filter((attr) => TRANSLATE_PIPE_NAMES.includes(attr.name));
-			ret.push(...ret, ...translatableAttributes);
+			ret.push(...translatableAttributes);
 		}
 
 		if ('inputs' in node && Array.isArray(node.inputs)) {
