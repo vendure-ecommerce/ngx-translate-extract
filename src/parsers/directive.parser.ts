@@ -24,7 +24,9 @@ import {
 } from '@angular/compiler';
 
 import { getAST, getNodesFromSwitchBlockTmpl } from '../utils/ast-helpers.js';
-import { TranslationCollection } from '../utils/translation.collection.js';
+import { normalizeFilePath } from '../utils/fs-helpers.js';
+import { TranslationCollection, type TranslationType } from '../utils/translation.collection.js';
+import { toTranslationType } from '../utils/utils.js';
 import { ParserInterface } from './parser.interface.js';
 
 interface BlockNode {
@@ -41,11 +43,12 @@ type ElementLike = Element | Template;
 
 export class DirectiveParser implements ParserInterface {
 	public extract(source: string, filePath: string): TranslationCollection {
-		let collection: TranslationCollection = new TranslationCollection();
+		const extracted: TranslationType = Object.create(null);
+		const filePathNormalized = normalizeFilePath(filePath);
 		const parsedTemplates = getAST(source, filePath).parsedTemplates;
 
 		if (parsedTemplates.length === 0) {
-			return collection;
+			return new TranslationCollection();
 		}
 
 		const nodes: TmplAstNode[] = parsedTemplates.map((parsedTpl) => parsedTpl.nodes).flat();
@@ -54,7 +57,7 @@ export class DirectiveParser implements ParserInterface {
 		elements.forEach((element) => {
 			const attribute = this.getAttribute(element, TRANSLATE_ATTR_NAMES);
 			if (attribute?.value) {
-				collection = collection.add(attribute.value, '', filePath);
+				extracted[attribute.value] = toTranslationType('', filePathNormalized);
 				return;
 			}
 
@@ -64,17 +67,17 @@ export class DirectiveParser implements ParserInterface {
 					if (!literalPrimitive.value) {
 						return;
 					}
-					collection = collection.add(literalPrimitive.value.toString(), '', filePath);
+					extracted[literalPrimitive.value.toString()] = toTranslationType('', filePathNormalized);
 				});
 				return;
 			}
 
 			const textNodes = this.getTextNodes(element);
 			textNodes.forEach((textNode) => {
-				collection = collection.add(textNode.value.trim(), '', filePath);
+				extracted[textNode.value.trim()] = toTranslationType('', filePathNormalized);
 			});
 		});
-		return collection;
+		return new TranslationCollection(extracted);
 	}
 
 	/**
@@ -82,18 +85,18 @@ export class DirectiveParser implements ParserInterface {
 	 * @param nodes
 	 */
 	protected getElementsWithTranslateAttribute(nodes: Node[]): ElementLike[] {
-		let elements: ElementLike[] = [];
+		const elements: ElementLike[] = [];
 
 		nodes.filter(this.isElementLike).forEach((element) => {
 			if (this.hasAttributes(element, TRANSLATE_ATTR_NAMES)) {
-				elements = [...elements, element];
+				elements.push(element);
 			}
 			if (this.hasBoundAttribute(element, TRANSLATE_ATTR_NAMES)) {
-				elements = [...elements, element];
+				elements.push(element);
 			}
 			const childElements = this.getElementsWithTranslateAttribute(element.children);
 			if (childElements.length) {
-				elements = [...elements, ...childElements];
+				elements.push(...childElements);
 			}
 		});
 
@@ -204,9 +207,9 @@ export class DirectiveParser implements ParserInterface {
 			visit = [exp.expression];
 		}
 
-		let results: LiteralPrimitive[] = [];
+		const results: LiteralPrimitive[] = [];
 		visit.forEach((child) => {
-			results = [...results, ...this.getLiteralPrimitives(child)];
+			results.push(...this.getLiteralPrimitives(child));
 		});
 		return results;
 	}

@@ -185,7 +185,7 @@ export class ExtractTask implements TaskInterface {
 		// Ensure that the pattern consistently uses forward slashes ("/")
 		// for cross-platform compatibility, as Glob patterns should always use "/"
 		const sanitizedPattern = pattern.split(path.sep).join(path.posix.sep);
-		return globSync(sanitizedPattern).filter((filePath) => fs.statSync(filePath).isFile());
+		return globSync(sanitizedPattern, { nodir: true });
 	}
 
 	protected out(...args: unknown[]): void {

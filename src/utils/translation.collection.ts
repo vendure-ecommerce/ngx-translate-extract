@@ -24,14 +24,12 @@ export class TranslationCollection {
 	}
 
 	public addKeys(keys: string[], sourceFile: string): TranslationCollection {
-		const values = keys.reduce(
-			(results, key) => ({
-				...results,
-				[key]: <TranslationInterface>{ value: '', sourceFiles: [normalizeFilePath(sourceFile)] },
-			}),
-			{} as TranslationType,
-		);
-		return new TranslationCollection({ ...this.values, ...values });
+		const normalizedSourceFile = normalizeFilePath(sourceFile);
+		const values: TranslationType = { ...this.values };
+		for (const key of keys) {
+			values[key] = { value: '', sourceFiles: [normalizedSourceFile] };
+		}
+		return new TranslationCollection(values);
 	}
 
 	public remove(key: string): TranslationCollection {
