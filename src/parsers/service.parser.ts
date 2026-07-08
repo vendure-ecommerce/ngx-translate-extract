@@ -1,7 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { ClassDeclaration, CallExpression, SourceFile, findConfigFile, parseConfigFileTextToJson } from 'typescript';
+import {
+	type ClassDeclaration,
+	type CallExpression,
+	type SourceFile,
+	type CompilerOptions,
+	findConfigFile,
+	parseConfigFileTextToJson,
+	parseJsonConfigFileContent,
+	resolveModuleName,
+	sys,
+} from 'typescript';
 
 import {
 	findClassDeclarations,
@@ -29,6 +39,7 @@ const TRANSLATE_SERVICE_METHOD_NAMES = ['get', 'instant', 'stream', 'translate']
 
 export class ServiceParser implements ParserInterface {
 	private static propertyMap = new Map<string, string[]>();
+	private static compilerOptionsCache = new Map<string, CompilerOptions>();
 
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);
@@ -118,7 +129,16 @@ export class ServiceParser implements ParserInterface {
 		return propNames.flatMap((name) => findPropertyCallExpressions(classDeclaration, name, TRANSLATE_SERVICE_METHOD_NAMES));
 	}
 
-	private findParentClassProperties(classDeclaration: ClassDeclaration, ast: SourceFile): string[] {
+	private findParentClassProperties(
+		classDeclaration: ClassDeclaration,
+		ast: SourceFile,
+		visited = new Set<ClassDeclaration>(),
+	): string[] {
+		if (visited.has(classDeclaration)) {
+			return [];
+		}
+		visited.add(classDeclaration);
+
 		const superClassNameOrAlias = getSuperClassName(classDeclaration);
 		if (!superClassNameOrAlias) {
 			return [];
@@ -126,9 +146,18 @@ export class ServiceParser implements ParserInterface {
 
 		const importPath = getImportPath(ast, superClassNameOrAlias);
 		if (!importPath) {
-			// parent class must be in the same file and will be handled automatically, so we can
-			// skip it here
-			return [];
+			// The parent class is in the same file.
+			const localSuperClassDeclarations = findClassDeclarations(ast, superClassNameOrAlias);
+			const localSuperClassPropertyNames = localSuperClassDeclarations.flatMap((decl) =>
+				findClassPropertiesByType(decl, TRANSLATE_SERVICE_TYPE_REFERENCE),
+			);
+
+			if (localSuperClassPropertyNames.length > 0) {
+				return localSuperClassPropertyNames;
+			}
+
+			// If the local parent class extends another class, recurse.
+			return localSuperClassDeclarations.flatMap((decl) => this.findParentClassProperties(decl, ast, visited));
 		}
 
 		// Resolve the actual name of the superclass from the named import
@@ -144,38 +173,31 @@ export class ServiceParser implements ParserInterface {
 			return cached;
 		}
 
-		let superClassPath: string;
-		if (importPath.startsWith('.')) {
-			// relative import, use currDir
-			superClassPath = path.resolve(currDir, importPath);
-		} else if (importPath.startsWith('/')) {
-			// absolute relative import, use path directly
-			superClassPath = importPath;
-		} else {
-			// absolute import, use baseUrl if present
-			let baseUrl = currDir;
-			const tsconfigFilePath = findConfigFile(currDir, fs.existsSync);
-			if (tsconfigFilePath) {
-				const tsConfigFile = fs.readFileSync(tsconfigFilePath, { encoding: 'utf8' });
-				const config = parseConfigFileTextToJson(tsconfigFilePath, tsConfigFile).config;
-				const compilerOptionsBaseUrl = config.compilerOptions?.baseUrl ?? '';
-				baseUrl = path.resolve(path.dirname(tsconfigFilePath), compilerOptionsBaseUrl);
-			}
+		const compilerOptions = this.getTsCompilerOptions(currDir);
 
-			superClassPath = path.resolve(baseUrl, importPath);
-		}
-		const superClassFile = superClassPath + '.ts';
-		let potentialSuperFiles: string[];
-		if (fs.existsSync(superClassFile) && fs.lstatSync(superClassFile).isFile()) {
-			potentialSuperFiles = [superClassFile];
-		} else if (fs.existsSync(superClassPath) && fs.lstatSync(superClassPath).isDirectory()) {
-			potentialSuperFiles = fs
-				.readdirSync(superClassPath)
-				.filter((file) => file.endsWith('.ts'))
-				.map((file) => path.join(superClassPath, file));
+		// Use TypeScript's native module resolver to handle aliases, paths, and absolute/relative imports
+		const resolvedModule = resolveModuleName(importPath, ast.fileName, compilerOptions, sys);
+
+		let potentialSuperFiles: string[] = [];
+
+		if (resolvedModule.resolvedModule && resolvedModule.resolvedModule.resolvedFileName) {
+			potentialSuperFiles = [resolvedModule.resolvedModule.resolvedFileName];
 		} else {
-			// we cannot find the superclass, so just assume that no translate property exists
-			return [];
+			// Fallback for unsupported edge cases or custom folder structures without index.ts
+			const superClassPath = importPath.startsWith('/') ? importPath : path.resolve(currDir, importPath);
+
+			const superClassFile = superClassPath + '.ts';
+			if (fs.lstatSync(superClassFile, { throwIfNoEntry: false })?.isFile()) {
+				potentialSuperFiles = [superClassFile];
+			} else if (fs.lstatSync(superClassPath, { throwIfNoEntry: false })?.isDirectory()) {
+				potentialSuperFiles = fs
+					.readdirSync(superClassPath)
+					.filter((file) => file.endsWith('.ts'))
+					.map((file) => path.join(superClassPath, file));
+			} else {
+				ServiceParser.propertyMap.set(cacheKey, []);
+				return [];
+			}
 		}
 
 		const allSuperClassPropertyNames: string[] = [];
@@ -190,14 +212,44 @@ export class ServiceParser implements ParserInterface {
 				findClassPropertiesByType(superClassDeclaration, TRANSLATE_SERVICE_TYPE_REFERENCE),
 			);
 			if (superClassPropertyNames.length > 0) {
-				ServiceParser.propertyMap.set(cacheKey, superClassPropertyNames);
 				allSuperClassPropertyNames.push(...superClassPropertyNames);
 			} else {
 				superClassDeclarations.forEach((declaration) =>
-					allSuperClassPropertyNames.push(...this.findParentClassProperties(declaration, superClassAst)),
+					allSuperClassPropertyNames.push(...this.findParentClassProperties(declaration, superClassAst, visited)),
 				);
 			}
 		});
+
+		// Cache the fully resolved result (even when empty) so any other class extending the same
+		// import doesn't have to read from the filesystem or re-walk these ASTs again.
+		ServiceParser.propertyMap.set(cacheKey, allSuperClassPropertyNames);
 		return allSuperClassPropertyNames;
+	}
+
+	private getTsCompilerOptions(currDir: string): CompilerOptions {
+		const cached = ServiceParser.compilerOptionsCache.get(currDir);
+		if (cached !== undefined) {
+			return cached;
+		}
+
+		const tsconfigFilePath = findConfigFile(currDir, fs.existsSync);
+
+		if (!tsconfigFilePath) {
+			return {};
+		}
+
+		const tsConfigFile = fs.readFileSync(tsconfigFilePath, { encoding: 'utf-8' });
+		const parsed = parseConfigFileTextToJson(tsconfigFilePath, tsConfigFile);
+
+		if (!parsed.config) {
+			return {};
+		}
+
+		// Fully resolves the config file including 'paths', 'baseUrl', and extended configs
+		const parsedConfig = parseJsonConfigFileContent(parsed.config, sys, path.dirname(tsconfigFilePath));
+		const options = parsedConfig.options;
+
+		ServiceParser.compilerOptionsCache.set(currDir, options);
+		return options;
 	}
 }

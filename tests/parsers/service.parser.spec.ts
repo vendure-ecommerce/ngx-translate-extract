@@ -683,7 +683,7 @@ describe('ServiceParser', () => {
 			}
 		`;
 		const keys = parser.extract(contents, componentFilename)?.keys();
-		expect(keys).to.deep.equal([]);
+		expect(keys).to.deep.equal(['test']);
 	});
 
 	it('should not extract chained function calls', () => {
