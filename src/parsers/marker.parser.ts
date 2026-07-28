@@ -1,5 +1,6 @@
 import { SourceFile } from 'typescript';
 
+import { ParserDescriptor } from '../cli/tasks/parser-descriptor.js';
 import { getNamedImportAlias, findFunctionCallExpressions, getStringsFromExpression, getAST } from '../utils/ast-helpers.js';
 import { normalizeFilePath } from '../utils/fs-helpers.js';
 import { TranslationCollection, type TranslationType } from '../utils/translation.collection.js';
@@ -12,6 +13,10 @@ const NGX_TRANSLATE_MARKER_MODULE_NAME = '@ngx-translate/core';
 const NGX_TRANSLATE_MARKER_IMPORT_NAME = '_';
 
 export class MarkerParser implements ParserInterface {
+	public describe(): ParserDescriptor {
+		return { name: 'marker' };
+	}
+
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);
 		const filePathNormalized = normalizeFilePath(filePath);

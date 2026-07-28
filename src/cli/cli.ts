@@ -226,7 +226,7 @@ extractTask.setCompiler(compiler);
 
 // Run task
 try {
-	extractTask.execute();
+	await extractTask.executeAsync();
 	if (cli.nullAsDefaultValue && cli.format === CompilerType.Pot) {
 		console.log(yellow(`\nWARNING: POT format does not support --null-as-default-value.`));
 	}

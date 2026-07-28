@@ -32,6 +32,15 @@ export class FileCache<RESULT extends object = object> implements CacheInterface
 		return (this.tapped[key] = generator());
 	}
 
+	public has<KEY extends string>(uniqueContents: KEY): boolean {
+		if (!this.cached) {
+			this.readCache();
+			this.versionHash = this.getVersionHash();
+		}
+
+		return !!this.cached && getHash(`${this.versionHash}${uniqueContents}`) in this.cached;
+	}
+
 	public persist(): void {
 		const newCache = JSON.stringify(this.sortByKey(this.tapped), null, 2);
 		if (newCache === this.originalCache) {

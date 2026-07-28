@@ -1,5 +1,6 @@
 import pkg from 'typescript';
 
+import { ParserDescriptor } from '../cli/tasks/parser-descriptor.js';
 import { getStringsFromExpression, findSimpleCallExpressions, getAST } from '../utils/ast-helpers.js';
 import { normalizeFilePath } from '../utils/fs-helpers.js';
 import { TranslationCollection, type TranslationType } from '../utils/translation.collection.js';
@@ -9,6 +10,10 @@ const { isIdentifier } = pkg;
 
 export class FunctionParser implements ParserInterface {
 	constructor(private fnName: string) {}
+
+	public describe(): ParserDescriptor {
+		return { name: 'function', fnName: this.fnName };
+	}
 
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);

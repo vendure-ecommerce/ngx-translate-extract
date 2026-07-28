@@ -5,4 +5,7 @@ export class NullCache<RESULT extends object = object> implements CacheInterface
 	get<KEY extends string>(_uniqueContents: KEY, generator: () => RESULT): RESULT {
 		return generator();
 	}
+	has<KEY extends string>(_uniqueContents: KEY): boolean {
+		return false;
+	}
 }

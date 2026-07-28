@@ -1,5 +1,7 @@
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
+import { Worker } from 'node:worker_threads';
 
 import { globSync } from 'glob';
 
@@ -12,7 +14,18 @@ import { PostProcessorInterface } from '../../post-processors/post-processor.int
 import { clearAstCache } from '../../utils/ast-helpers.js';
 import { cyan, green, bold, dim, red } from '../../utils/cli-color.js';
 import { TranslationCollection, TranslationType } from '../../utils/translation.collection.js';
+import type { ExtractWorkerData, ExtractWorkItem, ExtractWorkResult } from './extract.worker.js';
+import { ParserDescriptor } from './parser-descriptor.js';
 import { TaskInterface } from './task.interface.js';
+
+interface PendingExtraction {
+	cached: TranslationType[];
+	items: ExtractWorkItem[];
+	skipped: number;
+}
+
+const PARALLEL_FILE_THRESHOLD = 200;
+const MAX_WORKERS = 8;
 
 export interface ExtractTaskOptionsInterface {
 	replace?: boolean;
@@ -44,7 +57,33 @@ export class ExtractTask implements TaskInterface {
 		this.printEnabledCompiler();
 
 		this.out(bold('Extracting:'));
-		const extracted = this.extract();
+		const pending = this.collectPending();
+		this.write(this.collect(pending, this.extractInline(pending.items)));
+	}
+
+	/**
+	 * Same output as `execute`, but spreads parsing across worker threads when there are enough
+	 * files to be worth it. Separate from `execute` so the synchronous signature keeps working.
+	 */
+	public async executeAsync(): Promise<void> {
+		this.printEnabledParsers();
+		this.printEnabledPostProcessors();
+		this.printEnabledCompiler();
+
+		this.out(bold('Extracting:'));
+		const pending = this.collectPending();
+		const descriptors = this.describeParsers();
+		const workerCount = this.resolveWorkerCount(pending.items.length, descriptors);
+
+		const results =
+			workerCount > 1 && descriptors
+				? await this.extractInWorkers(pending.items, workerCount, descriptors)
+				: this.extractInline(pending.items);
+
+		this.write(this.collect(pending, results));
+	}
+
+	protected write(extracted: TranslationCollection): void {
 		this.out(green('\nFound %d strings.\n'), extracted.count());
 
 		this.out(bold('Saving:'));
@@ -114,33 +153,40 @@ export class ExtractTask implements TaskInterface {
 	}
 
 	/**
-	 * Extract strings from specified input dirs using configured parsers
+	 * Reads every input file, answering the cache up front so only misses need parsing.
 	 */
-	protected extract(): TranslationCollection {
-		const collectionTypes: TranslationType[] = [];
+	protected collectPending(): PendingExtraction {
+		const cached: TranslationType[] = [];
+		const items: ExtractWorkItem[] = [];
 		let skipped = 0;
+
 		this.inputs.forEach((pattern) => {
 			this.getFiles(pattern).forEach((filePath) => {
 				const contents: string = fs.readFileSync(filePath, 'utf-8');
-				skipped += 1;
-				const cachedCollectionValues = this.cache.get(`${pattern}:${filePath}:${contents}`, () => {
-					skipped -= 1;
-					this.out(dim('- %s'), filePath);
-					return this.parsers
-						.map((parser) => {
-							const extracted = parser.extract(contents, filePath);
-							return extracted.values;
-						})
-						.filter((result) => Object.keys(result).length > 0);
-				});
+				const cacheKey = `${pattern}:${filePath}:${contents}`;
 
-				collectionTypes.push(...cachedCollectionValues);
-				clearAstCache();
+				if (this.cache.has?.(cacheKey)) {
+					skipped += 1;
+					cached.push(...this.cache.get(cacheKey, () => []));
+					return;
+				}
+
+				items.push({ cacheKey, filePath, contents });
 			});
 		});
 
-		if (skipped) {
-			this.out(dim('- %s unchanged files skipped via cache'), skipped);
+		return { cached, items, skipped };
+	}
+
+	protected collect(pending: PendingExtraction, results: ExtractWorkResult[]): TranslationCollection {
+		const collectionTypes = [...pending.cached];
+		results.forEach(({ cacheKey, filePath, values }) => {
+			this.out(dim('- %s'), filePath);
+			collectionTypes.push(...this.cache.get(cacheKey, () => values));
+		});
+
+		if (pending.skipped) {
+			this.out(dim('- %s unchanged files skipped via cache'), pending.skipped);
 		}
 
 		const values: TranslationType = {};
@@ -149,6 +195,69 @@ export class ExtractTask implements TaskInterface {
 		}
 
 		return new TranslationCollection(values);
+	}
+
+	/**
+	 * Parsers that can't describe themselves (custom implementations) keep extraction on one thread,
+	 * since a worker has no way to rebuild them.
+	 */
+	protected describeParsers(): ParserDescriptor[] | undefined {
+		const descriptors = this.parsers.map((parser) => parser.describe?.());
+		return descriptors.every((descriptor) => !!descriptor) ? (descriptors as ParserDescriptor[]) : undefined;
+	}
+
+	/**
+	 * Workers only pay off once their startup cost is amortised over enough files, and they can
+	 * only be used when the caller supplied a recipe for rebuilding the parsers inside them.
+	 */
+	protected resolveWorkerCount(pendingCount: number, descriptors: ParserDescriptor[] | undefined): number {
+		if (!descriptors || pendingCount < PARALLEL_FILE_THRESHOLD) {
+			return 1;
+		}
+
+		const available = Math.max(1, (os.availableParallelism?.() ?? os.cpus().length) - 1);
+		return Math.max(1, Math.min(available, MAX_WORKERS, Math.floor(pendingCount / PARALLEL_FILE_THRESHOLD)));
+	}
+
+	protected extractInline(items: ExtractWorkItem[]): ExtractWorkResult[] {
+		return items.map(({ cacheKey, filePath, contents }) => {
+			const values = this.parsers
+				.map((parser) => parser.extract(contents, filePath).values)
+				.filter((result) => Object.keys(result).length > 0);
+			clearAstCache();
+			return { cacheKey, filePath, values };
+		});
+	}
+
+	protected extractInWorkers(
+		items: ExtractWorkItem[],
+		workerCount: number,
+		descriptors: ParserDescriptor[],
+	): Promise<ExtractWorkResult[]> {
+		const workerUrl = new URL('./extract.worker.js', import.meta.url);
+		const chunkSize = Math.ceil(items.length / workerCount);
+		const chunks: ExtractWorkItem[][] = [];
+		for (let i = 0; i < items.length; i += chunkSize) {
+			chunks.push(items.slice(i, i + chunkSize));
+		}
+
+		return Promise.all(
+			chunks.map(
+				(chunk) =>
+					new Promise<ExtractWorkResult[]>((resolve, reject) => {
+						const worker = new Worker(workerUrl, {
+							workerData: { descriptors, items: chunk } satisfies ExtractWorkerData,
+						});
+						worker.once('message', resolve);
+						worker.once('error', reject);
+						worker.once('exit', (code) => {
+							if (code !== 0) {
+								reject(new Error(`Extraction worker stopped with exit code ${code}`));
+							}
+						});
+					}),
+			),
+		).then((results) => results.flat());
 	}
 
 	/**

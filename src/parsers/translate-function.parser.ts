@@ -1,3 +1,4 @@
+import { ParserDescriptor } from '../cli/tasks/parser-descriptor.js';
 import { getNamedImportAlias, findFunctionCallExpressions, getStringsFromExpression, getAST } from '../utils/ast-helpers.js';
 import { normalizeFilePath } from '../utils/fs-helpers.js';
 import { TranslationCollection, type TranslationType } from '../utils/translation.collection.js';
@@ -5,6 +6,10 @@ import { toTranslationType } from '../utils/utils.js';
 import { ParserInterface } from './parser.interface.js';
 
 export class TranslateFunctionParser implements ParserInterface {
+	public describe(): ParserDescriptor {
+		return { name: 'translate-function' };
+	}
+
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);
 		const filePathNormalized = normalizeFilePath(filePath);

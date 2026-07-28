@@ -23,6 +23,7 @@ import {
 	TmplAstNode,
 } from '@angular/compiler';
 
+import { ParserDescriptor } from '../cli/tasks/parser-descriptor.js';
 import { getAST, getNodesFromSwitchBlockTmpl } from '../utils/ast-helpers.js';
 import { normalizeFilePath } from '../utils/fs-helpers.js';
 import { TranslationCollection, type TranslationType } from '../utils/translation.collection.js';
@@ -42,6 +43,10 @@ export const TRANSLATE_ATTR_NAMES = ['translate', 'marker'];
 type ElementLike = Element | Template;
 
 export class DirectiveParser implements ParserInterface {
+	public describe(): ParserDescriptor {
+		return { name: 'directive' };
+	}
+
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);
 		const filePathNormalized = normalizeFilePath(filePath);

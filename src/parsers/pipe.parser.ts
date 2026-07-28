@@ -20,6 +20,7 @@ import {
 	TemplateLiteral,
 } from '@angular/compiler';
 
+import { ParserDescriptor } from '../cli/tasks/parser-descriptor.js';
 import { getAST, getNodesFromSwitchBlockTmpl } from '../utils/ast-helpers.js';
 import { normalizeFilePath } from '../utils/fs-helpers.js';
 import { TranslationCollection, type TranslationType } from '../utils/translation.collection.js';
@@ -82,6 +83,10 @@ function traverseAstNode<T>(
 }
 
 export class PipeParser implements ParserInterface {
+	public describe(): ParserDescriptor {
+		return { name: 'pipe' };
+	}
+
 	public extract(source: string, filePath: string): TranslationCollection {
 		const filePathNormalized = normalizeFilePath(filePath);
 		const parsedTemplates = getAST(source, filePath).parsedTemplates;

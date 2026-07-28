@@ -13,6 +13,7 @@ import {
 	sys,
 } from 'typescript';
 
+import { ParserDescriptor } from '../cli/tasks/parser-descriptor.js';
 import {
 	findClassDeclarations,
 	findClassPropertiesByType,
@@ -40,6 +41,10 @@ const TRANSLATE_SERVICE_METHOD_NAMES = ['get', 'instant', 'stream', 'translate']
 export class ServiceParser implements ParserInterface {
 	private static propertyMap = new Map<string, string[]>();
 	private static compilerOptionsCache = new Map<string, CompilerOptions>();
+
+	public describe(): ParserDescriptor {
+		return { name: 'service' };
+	}
 
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);
