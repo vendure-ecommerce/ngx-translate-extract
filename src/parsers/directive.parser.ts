@@ -42,6 +42,10 @@ export const TRANSLATE_ATTR_NAMES = ['translate', 'marker'];
 type ElementLike = Element | Template;
 
 export class DirectiveParser implements ParserInterface {
+	public canMatch(source: string): boolean {
+		return TRANSLATE_ATTR_NAMES.some((name) => source.includes(name));
+	}
+
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);
 		const filePathNormalized = normalizeFilePath(filePath);

@@ -7,8 +7,21 @@ import { toTranslationType } from '../utils/utils.js';
 import { ParserInterface } from './parser.interface.js';
 const { isIdentifier } = pkg;
 
+function escapeRegExp(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export class FunctionParser implements ParserInterface {
-	constructor(private fnName: string) {}
+	private readonly fnNamePattern: RegExp;
+
+	constructor(private fnName: string) {
+		// Whole-identifier match, so a marker named `_` isn't triggered by every `snake_case` or `__dirname`.
+		this.fnNamePattern = new RegExp(`(?<![\\w$])${escapeRegExp(fnName)}(?![\\w$])`);
+	}
+
+	public canMatch(source: string): boolean {
+		return this.fnNamePattern.test(source);
+	}
 
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);

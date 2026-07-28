@@ -4,7 +4,14 @@ import { TranslationCollection, type TranslationType } from '../utils/translatio
 import { toTranslationType } from '../utils/utils.js';
 import { ParserInterface } from './parser.interface.js';
 
+const TRANSLATE_FN_MODULE_NAME = '@ngx-translate/core';
+const TRANSLATE_FN_IMPORT_NAME = 'translate';
+
 export class TranslateFunctionParser implements ParserInterface {
+	public canMatch(source: string): boolean {
+		return source.includes(TRANSLATE_FN_MODULE_NAME);
+	}
+
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);
 		const filePathNormalized = normalizeFilePath(filePath);
@@ -14,7 +21,7 @@ export class TranslateFunctionParser implements ParserInterface {
 			return new TranslationCollection();
 		}
 
-		const translateFnImportName = getNamedImportAlias(sourceFile, 'translate', '@ngx-translate/core');
+		const translateFnImportName = getNamedImportAlias(sourceFile, TRANSLATE_FN_IMPORT_NAME, TRANSLATE_FN_MODULE_NAME);
 		if (!translateFnImportName) {
 			return new TranslationCollection();
 		}
