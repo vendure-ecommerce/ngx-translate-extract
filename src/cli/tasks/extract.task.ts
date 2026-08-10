@@ -118,34 +118,52 @@ export class ExtractTask implements TaskInterface {
 	 */
 	protected extract(): TranslationCollection {
 		const collectionTypes: TranslationType[] = [];
-		let skipped = 0;
-		this.inputs.forEach((pattern) => {
-			this.getFiles(pattern).forEach((filePath) => {
-				const contents: string = fs.readFileSync(filePath, 'utf-8');
-				const applicableParsers = this.parsers.filter((parser) => parser.canMatch?.(contents) ?? true);
-				if (applicableParsers.length === 0) {
-					return;
-				}
+		let skippedUnchanged = 0;
+		let skippedNoMatch = 0;
 
-				skipped += 1;
-				const cachedCollectionValues = this.cache.get(`${pattern}:${filePath}:${contents}`, () => {
-					skipped -= 1;
-					this.out(dim('- %s'), filePath);
-					return applicableParsers
-						.map((parser) => {
-							const extracted = parser.extract(contents, filePath);
-							return extracted.values;
-						})
-						.filter((result) => Object.keys(result).length > 0);
-				});
+		// Deduplicate paths
+		const uniqueFilePaths = new Set<string>();
+		for (const pattern of this.inputs) {
+			for (const filePath of this.getFiles(pattern)) {
+				uniqueFilePaths.add(filePath);
+			}
+		}
 
-				collectionTypes.push(...cachedCollectionValues);
-				clearAstCache();
+		for (const filePath of uniqueFilePaths) {
+			const contents = fs.readFileSync(filePath, 'utf-8');
+			const applicableParsers = this.parsers.filter((parser) => parser.canMatch?.(contents) ?? true);
+
+			if (applicableParsers.length === 0) {
+				skippedNoMatch += 1;
+				continue;
+			}
+
+			const cacheKey = `${filePath}:${contents}`;
+			let isCacheMiss = false;
+
+			const cachedCollectionValues = this.cache.get(cacheKey, () => {
+				isCacheMiss = true;
+				this.out(dim('- %s'), filePath);
+
+				return applicableParsers
+					.map((parser) => parser.extract(contents, filePath).values)
+					.filter((result) => Object.keys(result).length > 0);
 			});
-		});
 
-		if (skipped) {
-			this.out(dim('- %s unchanged files skipped via cache'), skipped);
+			if (!isCacheMiss) {
+				skippedUnchanged += 1;
+			}
+
+			collectionTypes.push(...cachedCollectionValues);
+			clearAstCache();
+		}
+
+		if (skippedUnchanged > 0) {
+			this.out(dim('- %s unchanged files skipped via cache'), skippedUnchanged);
+		}
+
+		if (skippedNoMatch > 0) {
+			this.out(dim('- %s files skipped (no matching parser)'), skippedNoMatch);
 		}
 
 		const values: TranslationType = {};

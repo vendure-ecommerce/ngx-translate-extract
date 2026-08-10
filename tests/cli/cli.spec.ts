@@ -53,6 +53,21 @@ describe.concurrent('CLI Integration Tests', () => {
 		expect(stdout).toContain('Done.');
 	});
 
+	test('deduplicates overlapping input patterns to log marker fixture exactly once', async ({ expect }) => {
+		const OUTPUT_FILE = createUniqueFileName('dedupe-strings.json');
+
+		const { stdout } = await execAsync(
+			`node ${CLI_PATH} --input ${FIXTURES_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_FILE} --format=json`,
+		);
+
+		const cleanStdout = stripAnsi(stdout);
+
+		const exactLineRegex = /^\s*-\s*.*[/\\]marker\.fixture\.ts\r?$/gm;
+		const occurrences = (cleanStdout.match(exactLineRegex) || []).length;
+
+		expect(occurrences).toBe(1);
+	});
+
 	test('extracts translation keys to a .json file', async ({ expect }) => {
 		const OUTPUT_FILE = createUniqueFileName('strings.json');
 		await execAsync(`node ${CLI_PATH} --input ${FIXTURES_PATH} --output ${OUTPUT_FILE} --format=json`);
@@ -109,3 +124,11 @@ describe.concurrent('CLI Integration Tests', () => {
 		expect(stdout).toContain('WARNING: POT format does not support --null-as-default-value.');
 	});
 });
+
+/**
+ * Removes ANSI escape codes (colors, dim, formatting) from terminal output.
+ */
+function stripAnsi(input: string): string {
+	/* oxlint-disable no-control-regex */
+	return input.replace(/\u001b\[[0-9;]*m/g, '');
+}
