@@ -41,6 +41,10 @@ export class ServiceParser implements ParserInterface {
 	private static propertyMap = new Map<string, string[]>();
 	private static compilerOptionsCache = new Map<string, CompilerOptions>();
 
+	public canMatch(source: string): boolean {
+		return source.includes(TRANSLATE_SERVICE_TYPE_REFERENCE);
+	}
+
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);
 		const filePathNormalized = normalizeFilePath(filePath);

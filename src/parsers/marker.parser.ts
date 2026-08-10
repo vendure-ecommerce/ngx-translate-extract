@@ -12,6 +12,10 @@ const NGX_TRANSLATE_MARKER_MODULE_NAME = '@ngx-translate/core';
 const NGX_TRANSLATE_MARKER_IMPORT_NAME = '_';
 
 export class MarkerParser implements ParserInterface {
+	public canMatch(source: string): boolean {
+		return MARKER_MODULE_NAME.test(source) || source.includes(NGX_TRANSLATE_MARKER_MODULE_NAME);
+	}
+
 	public extract(source: string, filePath: string): TranslationCollection {
 		const extracted: TranslationType = Object.create(null);
 		const filePathNormalized = normalizeFilePath(filePath);

@@ -122,11 +122,16 @@ export class ExtractTask implements TaskInterface {
 		this.inputs.forEach((pattern) => {
 			this.getFiles(pattern).forEach((filePath) => {
 				const contents: string = fs.readFileSync(filePath, 'utf-8');
+				const applicableParsers = this.parsers.filter((parser) => parser.canMatch?.(contents) ?? true);
+				if (applicableParsers.length === 0) {
+					return;
+				}
+
 				skipped += 1;
 				const cachedCollectionValues = this.cache.get(`${pattern}:${filePath}:${contents}`, () => {
 					skipped -= 1;
 					this.out(dim('- %s'), filePath);
-					return this.parsers
+					return applicableParsers
 						.map((parser) => {
 							const extracted = parser.extract(contents, filePath);
 							return extracted.values;

@@ -82,6 +82,10 @@ function traverseAstNode<T>(
 }
 
 export class PipeParser implements ParserInterface {
+	public canMatch(source: string): boolean {
+		return TRANSLATE_PIPE_NAMES.some((name) => source.includes(name));
+	}
+
 	public extract(source: string, filePath: string): TranslationCollection {
 		const filePathNormalized = normalizeFilePath(filePath);
 		const parsedTemplates = getAST(source, filePath).parsedTemplates;
