@@ -118,8 +118,8 @@ export class ExtractTask implements TaskInterface {
 	 */
 	protected extract(): TranslationCollection {
 		const collectionTypes: TranslationType[] = [];
+		const skippedNoMatch: string[] = [];
 		let skippedUnchanged = 0;
-		let skippedNoMatch = 0;
 
 		// Deduplicate paths
 		const uniqueFilePaths = new Set<string>();
@@ -134,7 +134,7 @@ export class ExtractTask implements TaskInterface {
 			const applicableParsers = this.parsers.filter((parser) => parser.canMatch?.(contents) ?? true);
 
 			if (applicableParsers.length === 0) {
-				skippedNoMatch += 1;
+				skippedNoMatch.push(filePath);
 				continue;
 			}
 
@@ -162,8 +162,10 @@ export class ExtractTask implements TaskInterface {
 			this.out(dim('- %s unchanged files skipped via cache'), skippedUnchanged);
 		}
 
-		if (skippedNoMatch > 0) {
-			this.out(dim('- %s files skipped (no matching parser)'), skippedNoMatch);
+		if (skippedNoMatch.length > 0) {
+			const fileCount = skippedNoMatch.length === 1 ? '1 file' : `${skippedNoMatch.length} files`;
+			this.out(dim(`\nSkipped ${fileCount} (no applicable parser):`));
+			skippedNoMatch.forEach((filePath) => this.out(dim(`- ${filePath}`)));
 		}
 
 		const values: TranslationType = {};
