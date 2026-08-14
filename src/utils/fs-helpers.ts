@@ -1,8 +1,12 @@
-import * as fs from 'node:fs';
+import { statSync } from 'node:fs';
 import * as os from 'node:os';
 import { basename, sep, posix } from 'node:path';
+import { cwd } from 'node:process';
 
 import braces from 'braces';
+
+const CWD = cwd();
+const CWD_BASENAME = CWD ? basename(CWD) : '';
 
 export function normalizeHomeDir(path: string): string {
 	if (path.substring(0, 1) === '~') {
@@ -16,20 +20,21 @@ export function normalizeHomeDir(path: string): string {
  * with its base name and converting path separators to POSIX style.
  */
 export function normalizeFilePath(filePath: string): string {
-	const cwd = 'process' in globalThis ? process.cwd() : '';
-	const cwdBaseName = basename(cwd);
-
-	if (!filePath.startsWith(cwd)) {
+	if (!CWD || !filePath.startsWith(CWD)) {
 		return filePath;
 	}
 
-	return filePath.replace(cwd, cwdBaseName).replaceAll(sep, posix.sep);
+	return filePath.replace(CWD, CWD_BASENAME).replaceAll(sep, posix.sep);
 }
 
 /**
  * Expands a pattern with braces, handling Windows-style separators.
  */
 export function expandPattern(pattern: string): string[] {
+	if (!pattern.includes('{') || !pattern.includes('}')) {
+		return [pattern];
+	}
+
 	const isWindows = sep === '\\';
 
 	// Windows escaped separators can cause the brace "{" in the pattern to be also escaped and ignored by braces lib.
@@ -45,17 +50,31 @@ export function expandPattern(pattern: string): string[] {
 }
 
 export function normalizePaths(patterns: string[], defaultPatterns: string[] = []): string[] {
-	return patterns
-		.map((pattern) =>
-			expandPattern(pattern)
-				.map((path) => {
-					path = normalizeHomeDir(path);
-					if (fs.existsSync(path) && fs.statSync(path).isDirectory()) {
-						return defaultPatterns.map((defaultPattern) => path + defaultPattern);
-					}
-					return path;
-				})
-				.flat(),
-		)
-		.flat();
+	return patterns.flatMap((pattern) =>
+		expandPattern(pattern).flatMap((path) => {
+			const normalizedPath = normalizeHomeDir(path);
+			if (isDirectorySync(normalizedPath)) {
+				return defaultPatterns.map((defaultPattern) => normalizedPath + defaultPattern);
+			}
+			return normalizedPath;
+		}),
+	);
+}
+
+/** Checks if a path exists and is a directory in a single syscall. */
+export function isDirectorySync(path: string): boolean {
+	try {
+		return statSync(path, { throwIfNoEntry: false })?.isDirectory() ?? false;
+	} catch (error) {
+		// `throwIfNoEntry` only suppresses ENOENT. If an intermediate segment is a file
+		// (e.g. a glob pattern like `dist/bundle.js/*.map`), stat throws ENOTDIR.
+		// This definitively means "not a directory", so we return false and let the
+		// pattern fall through to glob (which yields no matches) matching the previous
+		// existsSync-based behavior. Unresolvable errors propagate.
+		if (error !== null && typeof error === 'object' && 'code' in error && error.code === 'ENOTDIR') {
+			return false;
+		}
+
+		throw error;
+	}
 }
