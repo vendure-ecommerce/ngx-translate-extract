@@ -7,6 +7,7 @@ import pkg, {
 	type ClassDeclaration,
 	type ConstructorDeclaration,
 	type Expression,
+	type HeritageClause,
 	type Identifier,
 	type Node,
 	type PropertyAccessExpression,
@@ -40,7 +41,12 @@ const {
 	isConditionalExpression,
 	isPropertyAccessExpression,
 	isStringLiteralLike,
+	isTypeReferenceNode,
+	isGetAccessorDeclaration,
+	isVariableDeclaration,
+	isParenthesizedExpression,
 	SyntaxKind,
+	forEachChild,
 } = pkg;
 
 const ANGULAR_TEMPLATE_KIND = ScriptKind.Unknown; // Unknown for ts
@@ -56,9 +62,29 @@ const SCRIPT_TYPES = new Map([
 ]);
 
 const AST_CACHE = new Map<string, ParsedSource>();
+let TSQUERY_CACHE = new WeakMap<Node, Map<string, unknown[]>>();
+
+/**
+ * Cache wrapper for tsquery to prevent redundant full-AST traversals
+ * on the same node for the same query.
+ */
+function runQuery<T extends Node = Node>(node: Node, query: string): T[] {
+	let nodeCache = TSQUERY_CACHE.get(node);
+	if (!nodeCache) {
+		nodeCache = new Map();
+		TSQUERY_CACHE.set(node, nodeCache);
+	}
+	let result = nodeCache.get(query);
+	if (!result) {
+		result = tsquery<T>(node, query);
+		nodeCache.set(query, result);
+	}
+	return result as T[];
+}
 
 export function clearAstCache(): void {
 	AST_CACHE.clear();
+	TSQUERY_CACHE = new WeakMap();
 }
 
 export function getAST(source: string, fileName = ''): ParsedSource {
@@ -110,9 +136,19 @@ export function parseSource(source: string, fileName = ''): ParsedSource {
  * Retrieves inline `template` property assignments from Angular `@Component` decorators.
  */
 export function getComponentInlineTemplate(node: Node): PropertyAssignment[] {
-	const query =
-		'Decorator > CallExpression:has(Identifier[name="Component"]) ObjectLiteralExpression > PropertyAssignment:has(Identifier[name="template"])';
-	return tsquery<PropertyAssignment>(node, query);
+	const query = 'Decorator PropertyAssignment';
+	const assignments = runQuery<PropertyAssignment>(node, query);
+
+	return assignments.filter((prop) => {
+		if (prop.name.getText() !== 'template') {
+			return false;
+		}
+
+		const objectLiteral = prop.parent;
+		const callExpression = objectLiteral?.parent;
+
+		return isCallExpression(callExpression) && callExpression.expression.getText() === 'Component';
+	});
 }
 
 /**
@@ -122,8 +158,7 @@ export function getNamedImportIdentifiers(node: Node, moduleName: string, import
 	const importStringLiteralValue = importPath instanceof RegExp ? `value=${importPath.toString()}` : `value="${importPath}"`;
 
 	const query = `ImportDeclaration:has(StringLiteral[${importStringLiteralValue}]) ImportSpecifier:has(Identifier[name="${moduleName}"]) > Identifier`;
-
-	return tsquery<Identifier>(node, query);
+	return runQuery<Identifier>(node, query);
 }
 
 /**
@@ -159,27 +194,37 @@ export function getNamedImportAlias(node: Node, importName: string, importPath: 
 }
 
 export function findClassDeclarations(node: Node, name?: string): ClassDeclaration[] {
-	let query = 'ClassDeclaration';
+	const query = 'ClassDeclaration';
+	const classes = runQuery<ClassDeclaration>(node, query);
 	if (name) {
-		query += `:has(Identifier[name="${name}"])`;
+		return classes.filter((c) => c.name && c.name.text === name);
 	}
-	return tsquery<ClassDeclaration>(node, query);
+	return classes;
 }
 
 export function findFunctionExpressions(node: Node) {
-	return tsquery(node, 'VariableDeclaration ArrowFunction, VariableDeclaration FunctionExpression');
+	return runQuery(node, 'VariableDeclaration ArrowFunction, VariableDeclaration FunctionExpression');
 }
 
 export function getSuperClassName(node: Node): string | null {
-	const query = 'ClassDeclaration > HeritageClause Identifier';
-	const [result] = tsquery<Identifier>(node, query);
-	return result?.text ?? null;
+	const query = 'ClassDeclaration > HeritageClause';
+	const clauses = runQuery<HeritageClause>(node, query);
+
+	const extendsClause = clauses.find((c) => c.token === SyntaxKind.ExtendsKeyword);
+	if (!extendsClause) {
+		return null;
+	}
+
+	// 3. Grab the Identifier representing the class name being extended
+	const [identifier] = runQuery<Identifier>(extendsClause, 'Identifier');
+	return identifier?.text ?? null;
 }
 
 export function getImportPath(node: Node, className: string): string | null {
-	const query = `ImportDeclaration:has(Identifier[name="${className}"]) StringLiteral`;
-	const [result] = tsquery<StringLiteral>(node, query);
-	return result?.text ?? null;
+	const query = `ImportDeclaration StringLiteral`;
+	const literals = runQuery<StringLiteral>(node, query);
+	const match = literals.find((l) => hasIdentifierNamed(l.parent, className));
+	return match?.text ?? null;
 }
 
 export function findClassPropertiesByType(node: ClassDeclaration, type: string): string[] {
@@ -193,24 +238,31 @@ export function findClassPropertiesByType(node: ClassDeclaration, type: string):
 
 export function findConstructorDeclaration(node: ClassDeclaration): ConstructorDeclaration | undefined {
 	const query = 'Constructor';
-	const [result] = tsquery<ConstructorDeclaration>(node, query);
+	const [result] = runQuery<ConstructorDeclaration>(node, query);
 	return result;
 }
 
 export function findMethodParameterByType(node: Node, type: string): string | null {
-	const query = `Parameter:has(TypeReference > Identifier[name="${type}"]) > Identifier`;
-	const [result] = tsquery<Identifier>(node, query);
-	if (result) {
-		return result.text;
-	}
-	return null;
+	const query = `Parameter:has(TypeReference) > Identifier`;
+	const params = runQuery<Identifier>(node, query);
+	const match = params.find((p) => hasTypeReferenceNamed(p.parent, type));
+	return match ? match.text : null;
 }
 
 export function findVariableNameByInjectType(node: Node, type: string): string | null {
-	const query = `VariableDeclaration:has(Identifier[name="inject"]):has(CallExpression > Identifier[name="${type}"]) > Identifier`;
-	const [result] = tsquery<Identifier>(node, query);
+	const query = `VariableDeclaration:has(Identifier[name="inject"]) > Identifier`;
+	const allInjects = runQuery<Identifier>(node, query);
+	const match = allInjects.find((identifier) => {
+		const varDecl = identifier.parent;
 
-	return result?.text ?? null;
+		if (!isVariableDeclaration(varDecl)) {
+			return false;
+		}
+
+		// Only search the initializer (the `inject(...)` part), ignoring the variable name
+		return varDecl.initializer && hasIdentifierNamed(varDecl.initializer, type);
+	});
+	return match?.text ?? null;
 }
 
 export function findMethodCallExpressions(node: Node, propName: string, fnName: string | string[]): CallExpression[] {
@@ -218,9 +270,12 @@ export function findMethodCallExpressions(node: Node, propName: string, fnName: 
 
 	const fnNameRegex = functionNames.join('|');
 
-	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(PropertyAccessExpression:has(Identifier[name="${propName}"]):not(:has(ThisKeyword)))`;
+	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):not(:has(ThisKeyword))`;
+	const possibleNodes = runQuery(node, query);
 
-	return unwrapMatchedCallExpressions(tsquery(node, query), functionNames);
+	const matchedNodes = possibleNodes.filter((n) => hasIdentifierNamed(n, propName));
+
+	return unwrapMatchedCallExpressions(matchedNodes, functionNames);
 }
 
 export function findInlineInjectCallExpressions(node: Node, injectType: string, fnName: string | string[]): CallExpression[] {
@@ -228,49 +283,67 @@ export function findInlineInjectCallExpressions(node: Node, injectType: string, 
 
 	const fnNameRegex = functionNames.join('|');
 
-	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(CallExpression:has(Identifier[name="inject"]):has(Identifier[name="${injectType}"]))`;
+	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnNameRegex})$/]):has(CallExpression:has(Identifier[name="inject"]))`;
+	const possibleNodes = runQuery(node, query);
 
-	return unwrapMatchedCallExpressions(tsquery(node, query), functionNames);
+	const matchedNodes = possibleNodes.filter((n) => hasIdentifierNamed(n, injectType));
+
+	return unwrapMatchedCallExpressions(matchedNodes, functionNames);
 }
 
 export function findClassPropertiesConstructorParameterByType(node: ClassDeclaration, type: string): string[] {
-	const query = `Constructor Parameter:has(TypeReference > Identifier[name="${type}"]):has(PublicKeyword,ProtectedKeyword,PrivateKeyword,ReadonlyKeyword) > Identifier`;
-	const result = tsquery<Identifier>(node, query);
-	return result.map((n) => n.text);
+	const broadQuery = `Constructor Parameter:has(PublicKeyword,ProtectedKeyword,PrivateKeyword,ReadonlyKeyword) > Identifier`;
+	const params = runQuery<Identifier>(node, broadQuery);
+	return params.filter((p) => hasTypeReferenceNamed(p.parent, type)).map((n) => n.text);
 }
 
 export function findClassPropertiesDeclarationByType(node: ClassDeclaration, type: string): string[] {
-	const query = `PropertyDeclaration:has(TypeReference > Identifier[name="${type}"])`;
-	const result = tsquery<PropertyDeclaration>(node, query);
-	return result.map((n) => n.name.getText());
+	const query = `PropertyDeclaration:has(TypeReference)`;
+	const props = runQuery<PropertyDeclaration>(node, query);
+	return props.filter((p) => p.type && hasTypeReferenceNamed(p.type, type)).map((n) => n.name.getText());
 }
 
 export function findClassPropertiesDeclarationByInject(node: ClassDeclaration, type: string): string[] {
-	const query = `PropertyDeclaration:has(CallExpression > Identifier[name="inject"]):has(CallExpression > Identifier[name="${type}"])`;
-	const result = tsquery<PropertyDeclaration>(node, query);
-	return result.map((n) => n.name.getText());
+	const query = `PropertyDeclaration:has(CallExpression > Identifier[name="inject"])`;
+	const allInjects = runQuery<PropertyDeclaration>(node, query);
+	return (
+		allInjects
+			// Restrict search to the initializer (the `inject(...)` call itself), ignoring the property name
+			.filter((p) => p.initializer && hasIdentifierNamed(p.initializer, type))
+			.map((n) => n.name.getText())
+	);
 }
 
 export function findClassPropertiesGetterByType(node: ClassDeclaration, type: string): string[] {
-	const query = `GetAccessor:has(TypeReference > Identifier[name="${type}"]) > Identifier`;
-	const result = tsquery<Identifier>(node, query);
-	return result.map((n) => n.text);
+	const query = `GetAccessor:has(TypeReference) > Identifier`;
+	const getters = runQuery<Identifier>(node, query);
+	return getters
+		.filter((g) => {
+			const getAccessor = g.parent;
+
+			if (!isGetAccessorDeclaration(getAccessor)) {
+				return false;
+			}
+
+			return getAccessor.type && hasTypeReferenceNamed(getAccessor.type, type);
+		})
+		.map((n) => n.text);
 }
 
 export function findFunctionCallExpressions(node: Node, fnName: string | string[]): CallExpression[] {
 	if (Array.isArray(fnName)) {
 		fnName = fnName.join('|');
 	}
-	const query = `CallExpression:has(Identifier[name="${fnName}"]):not(:has(PropertyAccessExpression))`;
-	return tsquery<CallExpression>(node, query);
+	const query = `CallExpression:has(Identifier[name=/^(${fnName})$/]):not(:has(PropertyAccessExpression))`;
+	return runQuery<CallExpression>(node, query);
 }
 
-export function findSimpleCallExpressions(node: Node, fnName: string) {
+export function findSimpleCallExpressions(node: Node, fnName: string | string[]) {
 	if (Array.isArray(fnName)) {
 		fnName = fnName.join('|');
 	}
-	const query = `CallExpression:has(Identifier[name="${fnName}"])`;
-	return tsquery<CallExpression>(node, query);
+	const query = `CallExpression:has(Identifier[name=/^(${fnName})$/])`;
+	return runQuery<CallExpression>(node, query);
 }
 
 export function findPropertyCallExpressions(node: Node, prop: string, fnName: string | string[]): CallExpression[] {
@@ -279,7 +352,7 @@ export function findPropertyCallExpressions(node: Node, prop: string, fnName: st
 	}
 
 	const query = `CallExpression > PropertyAccessExpression:has(Identifier[name=/^(${fnName})$/]):has(PropertyAccessExpression:has(ThisKeyword))`;
-	const result = tsquery<PropertyAccessExpression>(node, query);
+	const result = runQuery<PropertyAccessExpression>(node, query);
 
 	const nodes: CallExpression[] = [];
 	result.forEach((n) => {
@@ -297,48 +370,55 @@ export function findPropertyCallExpressions(node: Node, prop: string, fnName: st
 }
 
 export function getStringsFromExpression(expression: Expression): string[] {
-	if (isStringLiteralLike(expression) && expression.text.trim() !== '') {
+	return collectStringsFromExpression(expression).filter((s) => s.trim() !== '');
+}
+
+/**
+ * Internal recursive helper that preserves empty and whitespace-only strings
+ * so that binary concatenations (e.g., 'hello' + ' ' + 'world') evaluate correctly.
+ */
+function collectStringsFromExpression(expression: Expression): string[] {
+	if (isParenthesizedExpression(expression)) {
+		return collectStringsFromExpression(expression.expression);
+	}
+
+	if (isStringLiteralLike(expression)) {
 		return [expression.text];
 	}
 
 	if (isArrayLiteralExpression(expression)) {
-		return expression.elements.flatMap(getStringsFromExpression);
+		return expression.elements.flatMap(collectStringsFromExpression);
 	}
 
 	if (isBinaryExpression(expression)) {
-		const [left] = getStringsFromExpression(expression.left);
-		const [right] = getStringsFromExpression(expression.right);
+		const leftStrings = collectStringsFromExpression(expression.left);
+		const rightStrings = collectStringsFromExpression(expression.right);
 
 		if (expression.operatorToken.kind === SyntaxKind.PlusToken) {
-			if (typeof left === 'string' && typeof right === 'string') {
-				return [left + right];
+			// An empty array means a "dynamic side" was encountered.
+			// If either side is dynamic, invalidate the whole string.
+			if (leftStrings.length === 0 || rightStrings.length === 0) {
+				return [];
 			}
+
+			const combinations: string[] = [];
+			for (const l of leftStrings) {
+				for (const r of rightStrings) {
+					combinations.push(l + r);
+				}
+			}
+			return combinations;
 		}
 
 		if (expression.operatorToken.kind === SyntaxKind.BarBarToken) {
-			const result = [];
-			if (typeof left === 'string') {
-				result.push(left);
-			}
-			if (typeof right === 'string') {
-				result.push(right);
-			}
-			return result;
+			return [...leftStrings, ...rightStrings];
 		}
 	}
 
 	if (isConditionalExpression(expression)) {
-		const [whenTrue] = getStringsFromExpression(expression.whenTrue);
-		const [whenFalse] = getStringsFromExpression(expression.whenFalse);
-
-		const result = [];
-		if (typeof whenTrue === 'string') {
-			result.push(whenTrue);
-		}
-		if (typeof whenFalse === 'string') {
-			result.push(whenFalse);
-		}
-		return result;
+		const whenTrue = collectStringsFromExpression(expression.whenTrue);
+		const whenFalse = collectStringsFromExpression(expression.whenFalse);
+		return [...whenTrue, ...whenFalse];
 	}
 	return [];
 }
@@ -381,4 +461,42 @@ export function unwrapMatchedCallExpressions(nodes: Node[], fnNames: string[]): 
 	}
 
 	return results;
+}
+
+/**
+ * AST visitor to search for an Identifier by name.
+ */
+function hasIdentifierNamed(n: Node, name: string): boolean {
+	if (n.kind === SyntaxKind.Identifier && (n as Identifier).text === name) {
+		return true;
+	}
+
+	return !!forEachChild(n, (child) => hasIdentifierNamed(child, name));
+}
+
+/**
+ * AST visitor to search exclusively for a TypeReference
+ * that contains a specific Identifier name.
+ */
+function hasTypeReferenceNamed(n: Node, name: string): boolean {
+	if (n.kind === SyntaxKind.ArrayType) {
+		return false;
+	}
+
+	if (isTypeReferenceNode(n)) {
+		// Match standard identifiers (e.g. TranslateService)
+		if (n.typeName && n.typeName.kind === SyntaxKind.Identifier && n.typeName.text === name) {
+			return true;
+		}
+
+		// Match qualified names (e.g. Core.TranslateService)
+		if (n.typeName && n.typeName.kind === SyntaxKind.QualifiedName && n.typeName.right.text === name) {
+			return true;
+		}
+
+		// Prevents the walker from looking inside <typeArguments>.
+		return false;
+	}
+
+	return !!forEachChild(n, (child) => hasTypeReferenceNamed(child, name));
 }
